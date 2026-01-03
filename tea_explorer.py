@@ -588,13 +588,12 @@ class TeaExplorerApp:
         
         # Origin
         self.details_text.insert(tk.END, "Origin\n", 'header')
-        self.details_text.insert(tk.END, f"Country: {tea['origin_country']}\n", 'value')
-        self.details_text.insert(tk.END, f"Region: {tea['origin_region']}\n\n", 'value')
+        self.details_text.insert(tk.END, f"Location: {tea['origin']}\n\n", 'value')
         
         # Processing
         self.details_text.insert(tk.END, "Processing\n", 'header')
-        self.details_text.insert(tk.END, f"Method: {tea['processing_method']}\n", 'value')
-        self.details_text.insert(tk.END, f"Oxidation: {tea['oxidation_level']}\n\n", 'value')
+        self.details_text.insert(tk.END, f"{tea['processing']}\n", 'value')
+        self.details_text.insert(tk.END, f"Oxidation: {tea['oxidation']}\n\n", 'value')
         
         # Flavor & Aroma
         self.details_text.insert(tk.END, "Flavor & Aroma\n", 'header')
@@ -605,10 +604,10 @@ class TeaExplorerApp:
         # Brewing
         self.details_text.insert(tk.END, "Brewing Instructions\n", 'header')
         self.details_text.insert(tk.END, 
-            f"Water Temperature: {tea['water_temp_celsius']}°C ({tea['water_temp_fahrenheit']}°F)\n", 'value')
+            f"Water Temperature: {tea['brew_temp_c']}°C ({tea['brew_temp_f']}°F)\n", 'value')
         self.details_text.insert(tk.END, 
-            f"Steep Time: {tea['steep_time_min']}-{tea['steep_time_max']} minutes\n", 'value')
-        self.details_text.insert(tk.END, f"Ratio: {tea['tea_to_water_ratio']}\n", 'value')
+            f"Steep Time: {tea['steep_time']}\n", 'value')
+        self.details_text.insert(tk.END, f"Ratio: {tea['tea_water_ratio']}\n", 'value')
         self.details_text.insert(tk.END, f"Re-infusions: Up to {tea['reinfusions']} times\n", 'value')
         self.details_text.insert(tk.END, f"Caffeine: {tea['caffeine_level']}\n\n", 'value')
         
@@ -622,10 +621,9 @@ class TeaExplorerApp:
         
         # Additional Info
         self.details_text.insert(tk.END, "Additional Information\n", 'header')
-        self.details_text.insert(tk.END, f"Best Time: {tea['best_time']}\n", 'value')
         self.details_text.insert(tk.END, f"Price Range: {tea['price_range']}\n", 'value')
-        if tea['notable_cultivars']:
-            self.details_text.insert(tk.END, f"Notable Cultivars: {tea['notable_cultivars']}\n", 'value')
+        if tea['cultivars'] and tea['cultivars'] != 'None':
+            self.details_text.insert(tk.END, f"Cultivars: {tea['cultivars']}\n", 'value')
     
     def load_guide(self):
         """Load the tea guide markdown file"""

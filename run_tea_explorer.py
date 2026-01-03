@@ -19,7 +19,7 @@ if __name__ == "__main__":
     print("="*60)
     print("\nStarting the Tea Collection Explorer...")
     print("Features:")
-    print("  • Browse 24+ tea varieties in database")
+    print("  • Browse 170+ tea varieties in database")
     print("  • Search by name, category, or flavor")
     print("  • View comprehensive tea guides")
     print("  • Explore tea history")
