@@ -66,6 +66,7 @@ class TeaExplorerApp:
         # Create tabs
         self.create_database_tab()
         self.create_cultivars_tab()
+        self.create_brands_tab()  # NEW: Tea Brands/Manufacturers tab
         self.create_brewing_tab()
         self.create_journal_tab()
         self.create_comparison_tab()
@@ -131,10 +132,14 @@ class TeaExplorerApp:
             cultivar_count = cursor.fetchone()[0]
             cursor.execute("SELECT COUNT(*) FROM regions")
             region_count = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM companies")
+            company_count = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM products")
+            product_count = cursor.fetchone()[0]
 
             journal_count = len(self.journal_entries)
 
-            status_text = f"Database: {tea_count} teas | {cultivar_count} cultivars | {region_count} regions | Journal: {journal_count} entries"
+            status_text = f"Database: {tea_count} teas | {cultivar_count} cultivars | {region_count} regions | {company_count} brands | {product_count} products | Journal: {journal_count} entries"
             self.status_bar.config(text=status_text)
         except:
             self.status_bar.config(text="Ready")
@@ -320,6 +325,144 @@ class TeaExplorerApp:
 
         # Load cultivars
         self.load_cultivars()
+
+    def create_brands_tab(self):
+        """Create tea brands/manufacturers browser tab"""
+        brands_frame = ttk.Frame(self.notebook)
+        self.notebook.add(brands_frame, text="🏪 Tea Brands")
+        
+        # Header with search
+        header_frame = ttk.Frame(brands_frame)
+        header_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Label(header_frame, text="Tea Manufacturers & Brands",
+                 style='Title.TLabel').pack(side='left')
+        
+        # Search and filters
+        search_filter_frame = ttk.Frame(brands_frame)
+        search_filter_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
+        # Row 1: Company search
+        row1 = ttk.Frame(search_filter_frame)
+        row1.pack(fill='x', pady=(0, 5))
+        
+        ttk.Label(row1, text="Search Company:").pack(side='left', padx=5)
+        self.brand_search_var = tk.StringVar()
+        brand_search = ttk.Entry(row1, textvariable=self.brand_search_var, width=30)
+        brand_search.pack(side='left', padx=5)
+        brand_search.bind('<KeyRelease>', self.on_brand_search)
+        
+        ttk.Label(row1, text="Country:").pack(side='left', padx=(20, 5))
+        self.brand_country_var = tk.StringVar(value="All")
+        brand_country_combo = ttk.Combobox(row1, textvariable=self.brand_country_var,
+                                          values=["All", "UK", "USA", "Japan", "China", "India", "Sri Lanka", 
+                                                 "France", "Germany", "Ireland", "Australia", "Singapore"],
+                                          state='readonly', width=15)
+        brand_country_combo.pack(side='left', padx=5)
+        brand_country_combo.bind('<<ComboboxSelected>>', self.on_brand_search)
+        
+        # Row 2: Market segment and certification filters
+        row2 = ttk.Frame(search_filter_frame)
+        row2.pack(fill='x')
+        
+        ttk.Label(row2, text="Market Segment:").pack(side='left', padx=5)
+        self.brand_segment_var = tk.StringVar(value="All")
+        segment_combo = ttk.Combobox(row2, textvariable=self.brand_segment_var,
+                                    values=["All", "mass-market", "premium", "specialty", "luxury"],
+                                    state='readonly', width=15)
+        segment_combo.pack(side='left', padx=5)
+        segment_combo.bind('<<ComboboxSelected>>', self.on_brand_search)
+        
+        ttk.Label(row2, text="Certifications:").pack(side='left', padx=(20, 5))
+        self.brand_cert_var = tk.StringVar(value="All")
+        cert_combo = ttk.Combobox(row2, textvariable=self.brand_cert_var,
+                                 values=["All", "Organic", "Fairtrade", "B Corp", "Royal Warrant", "Rainforest Alliance"],
+                                 state='readonly', width=18)
+        cert_combo.pack(side='left', padx=5)
+        cert_combo.bind('<<ComboboxSelected>>', self.on_brand_search)
+        
+        ttk.Button(row2, text="Clear Filters",
+                  command=self.clear_brand_filters).pack(side='left', padx=(20, 5))
+        
+        # Main content frame
+        content_frame = ttk.Frame(brands_frame)
+        content_frame.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        # Left side: Companies list
+        companies_frame = ttk.Frame(content_frame)
+        companies_frame.pack(side='left', fill='both', expand=True, padx=(0, 5))
+        
+        ttk.Label(companies_frame, text="Companies", style='Header.TLabel').pack(anchor='w', pady=5)
+        
+        companies_scroll = ttk.Frame(companies_frame)
+        companies_scroll.pack(fill='both', expand=True)
+        
+        self.companies_listbox = tk.Listbox(companies_scroll, font=('Arial', 10))
+        companies_scrollbar = ttk.Scrollbar(companies_scroll, orient='vertical',
+                                           command=self.companies_listbox.yview)
+        self.companies_listbox.configure(yscrollcommand=companies_scrollbar.set)
+        
+        self.companies_listbox.pack(side='left', fill='both', expand=True)
+        companies_scrollbar.pack(side='right', fill='y')
+        
+        self.companies_listbox.bind('<<ListboxSelect>>', self.on_company_select)
+        self.company_data = []
+        
+        # Right side: Company details and products
+        right_panel = ttk.Frame(content_frame)
+        right_panel.pack(side='right', fill='both', expand=True)
+        
+        # Company details section
+        details_label_frame = ttk.LabelFrame(right_panel, text="Company Information", padding=10)
+        details_label_frame.pack(fill='both', expand=True, pady=(0, 5))
+        
+        self.brand_details_text = scrolledtext.ScrolledText(details_label_frame, wrap=tk.WORD,
+                                                            font=('Arial', 10), height=12)
+        self.brand_details_text.pack(fill='both', expand=True)
+        
+        self.brand_details_text.tag_configure('company', font=('Arial', 16, 'bold'), foreground='#2c5f2d')
+        self.brand_details_text.tag_configure('header', font=('Arial', 11, 'bold'), foreground='#4a4a4a')
+        self.brand_details_text.tag_configure('value', font=('Arial', 10))
+        
+        # Products section
+        products_label_frame = ttk.LabelFrame(right_panel, text="Products", padding=10)
+        products_label_frame.pack(fill='both', expand=True)
+        
+        # Products search
+        prod_search_frame = ttk.Frame(products_label_frame)
+        prod_search_frame.pack(fill='x', pady=(0, 5))
+        
+        ttk.Label(prod_search_frame, text="Filter Products:").pack(side='left', padx=5)
+        self.product_filter_var = tk.StringVar()
+        product_filter = ttk.Entry(prod_search_frame, textvariable=self.product_filter_var, width=25)
+        product_filter.pack(side='left', padx=5)
+        product_filter.bind('<KeyRelease>', self.on_product_filter)
+        
+        ttk.Label(prod_search_frame, text="Type:").pack(side='left', padx=(10, 5))
+        self.product_type_var = tk.StringVar(value="All")
+        product_type_combo = ttk.Combobox(prod_search_frame, textvariable=self.product_type_var,
+                                         values=["All", "black", "green", "white", "oolong", "herbal", "matcha", "chai"],
+                                         state='readonly', width=12)
+        product_type_combo.pack(side='left', padx=5)
+        product_type_combo.bind('<<ComboboxSelected>>', self.on_product_filter)
+        
+        # Products list with scrollbar
+        products_scroll = ttk.Frame(products_label_frame)
+        products_scroll.pack(fill='both', expand=True)
+        
+        self.products_listbox = tk.Listbox(products_scroll, font=('Arial', 9))
+        products_scrollbar = ttk.Scrollbar(products_scroll, orient='vertical',
+                                          command=self.products_listbox.yview)
+        self.products_listbox.configure(yscrollcommand=products_scrollbar.set)
+        
+        self.products_listbox.pack(side='left', fill='both', expand=True)
+        products_scrollbar.pack(side='right', fill='y')
+        
+        self.products_listbox.bind('<<ListboxSelect>>', self.on_product_select)
+        self.current_products = []
+        
+        # Load companies
+        self.load_companies()
 
     def create_brewing_tab(self):
         """Create brewing timer tab"""
@@ -775,6 +918,228 @@ class TeaExplorerApp:
                     self.cultivar_details_text.insert(tk.END, f"  • {tea['name']}\n", 'value')
         except:
             pass
+
+    # ==============================================
+    # TEA BRANDS TAB FUNCTIONS
+    # ==============================================
+
+    def load_companies(self, search_term='', country='All', segment='All', cert='All'):
+        """Load companies list with filters"""
+        self.companies_listbox.delete(0, tk.END)
+        self.company_data = []
+        
+        try:
+            cursor = self.conn.cursor()
+            
+            query = """
+                SELECT company_id, company_name, country_of_origin, market_segment, certifications 
+                FROM companies WHERE 1=1
+            """
+            params = []
+            
+            if country != 'All':
+                query += " AND country_of_origin = ?"
+                params.append(country)
+            
+            if segment != 'All':
+                query += " AND market_segment = ?"
+                params.append(segment)
+            
+            if cert != 'All':
+                query += " AND certifications LIKE ?"
+                params.append(f'%{cert}%')
+            
+            if search_term:
+                query += " AND (company_name LIKE ? OR description LIKE ?)"
+                params.extend([f'%{search_term}%'] * 2)
+            
+            query += " ORDER BY company_name"
+            
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                display = f"{row['company_name']} ({row['country_of_origin']})"
+                self.companies_listbox.insert(tk.END, display)
+                self.company_data.append({
+                    'id': row['company_id'],
+                    'name': row['company_name'],
+                    'country': row['country_of_origin'],
+                    'segment': row['market_segment'],
+                    'certifications': row['certifications']
+                })
+            
+            if rows:
+                self.companies_listbox.select_set(0)
+                self.on_company_select(None)
+        
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error loading companies: {e}")
+    
+    def on_brand_search(self, event=None):
+        """Handle brand search and filtering"""
+        search_term = self.brand_search_var.get()
+        country = self.brand_country_var.get()
+        segment = self.brand_segment_var.get()
+        cert = self.brand_cert_var.get()
+        self.load_companies(search_term, country, segment, cert)
+    
+    def clear_brand_filters(self):
+        """Clear all brand filters"""
+        self.brand_search_var.set('')
+        self.brand_country_var.set('All')
+        self.brand_segment_var.set('All')
+        self.brand_cert_var.set('All')
+        self.load_companies()
+    
+    def on_company_select(self, event):
+        """Handle company selection"""
+        selection = self.companies_listbox.curselection()
+        if not selection:
+            return
+        
+        index = selection[0]
+        if index < len(self.company_data):
+            company_id = self.company_data[index]['id']
+            
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute("SELECT * FROM companies WHERE company_id = ?", (company_id,))
+                company = cursor.fetchone()
+                
+                if company:
+                    self.display_company_details(company)
+                    self.load_company_products(company_id)
+            
+            except sqlite3.Error as e:
+                messagebox.showerror("Database Error", f"Error: {e}")
+    
+    def display_company_details(self, company):
+        """Display company details"""
+        self.brand_details_text.delete('1.0', tk.END)
+        
+        self.brand_details_text.insert(tk.END, f"{company['company_name']}\n", 'company')
+        self.brand_details_text.insert(tk.END, f"{company['market_segment'].title()} Brand\n\n", 'header')
+        
+        self.brand_details_text.insert(tk.END, "🏢 Company Information\n", 'header')
+        if company['parent_company']:
+            self.brand_details_text.insert(tk.END, f"Parent Company: {company['parent_company']}\n", 'value')
+        self.brand_details_text.insert(tk.END, f"Founded: {company['founded_year']}\n", 'value')
+        self.brand_details_text.insert(tk.END, f"Headquarters: {company['headquarters_city']}, {company['country_of_origin']}\n", 'value')
+        if company['website']:
+            self.brand_details_text.insert(tk.END, f"Website: {company['website']}\n", 'value')
+        self.brand_details_text.insert(tk.END, "\n")
+        
+        if company['certifications']:
+            self.brand_details_text.insert(tk.END, "✓ Certifications\n", 'header')
+            self.brand_details_text.insert(tk.END, f"{company['certifications']}\n\n", 'value')
+        
+        if company['description']:
+            self.brand_details_text.insert(tk.END, "📝 Description\n", 'header')
+            self.brand_details_text.insert(tk.END, f"{company['description']}\n", 'value')
+    
+    def load_company_products(self, company_id, filter_text='', tea_type='All'):
+        """Load products for selected company"""
+        self.products_listbox.delete(0, tk.END)
+        self.current_products = []
+        
+        try:
+            cursor = self.conn.cursor()
+            
+            query = """
+                SELECT * FROM products 
+                WHERE company_id = ?
+            """
+            params = [company_id]
+            
+            if tea_type != 'All':
+                query += " AND tea_type = ?"
+                params.append(tea_type)
+            
+            if filter_text:
+                query += " AND product_name LIKE ?"
+                params.append(f'%{filter_text}%')
+            
+            query += " ORDER BY product_name"
+            
+            cursor.execute(query, params)
+            products = cursor.fetchall()
+            
+            for product in products:
+                # Format price
+                price_str = f"{product['price_currency']} {product['price']:.2f}" if product['price'] else "N/A"
+                
+                # Create display string
+                display = f"{product['product_name']} - {product['tea_type'].title()} - {price_str}"
+                
+                self.products_listbox.insert(tk.END, display)
+                self.current_products.append(dict(product))
+        
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error loading products: {e}")
+    
+    def on_product_filter(self, event=None):
+        """Handle product filtering"""
+        selection = self.companies_listbox.curselection()
+        if not selection:
+            return
+        
+        index = selection[0]
+        if index < len(self.company_data):
+            company_id = self.company_data[index]['id']
+            filter_text = self.product_filter_var.get()
+            tea_type = self.product_type_var.get()
+            self.load_company_products(company_id, filter_text, tea_type)
+    
+    def on_product_select(self, event):
+        """Handle product selection - show detailed info in a popup"""
+        selection = self.products_listbox.curselection()
+        if not selection:
+            return
+        
+        index = selection[0]
+        if index < len(self.current_products):
+            product = self.current_products[index]
+            
+            # Create popup window with product details
+            popup = tk.Toplevel(self.root)
+            popup.title(f"Product Details - {product['product_name']}")
+            popup.geometry("500x450")
+            popup.transient(self.root)
+            
+            # Product details
+            details_text = scrolledtext.ScrolledText(popup, wrap=tk.WORD, font=('Arial', 10))
+            details_text.pack(fill='both', expand=True, padx=10, pady=10)
+            
+            details_text.tag_configure('title', font=('Arial', 14, 'bold'), foreground='#2c5f2d')
+            details_text.tag_configure('header', font=('Arial', 11, 'bold'))
+            details_text.tag_configure('value', font=('Arial', 10))
+            
+            details_text.insert(tk.END, f"{product['product_name']}\n\n", 'title')
+            
+            details_text.insert(tk.END, "Product Information\n", 'header')
+            details_text.insert(tk.END, f"Tea Type: {product['tea_type'].title()}\n", 'value')
+            details_text.insert(tk.END, f"Category: {product['tea_category'].title()}\n", 'value')
+            details_text.insert(tk.END, f"Bag Type: {product['bag_type'].title()}\n", 'value')
+            details_text.insert(tk.END, f"Format: {product['format']}\n", 'value')
+            details_text.insert(tk.END, f"Quantity: {product['quantity']}\n\n", 'value')
+            
+            details_text.insert(tk.END, "Pricing & Availability\n", 'header')
+            if product['price']:
+                details_text.insert(tk.END, f"Price: {product['price_currency']} {product['price']:.2f}\n", 'value')
+            details_text.insert(tk.END, f"Available in: {product['countries_available']}\n\n", 'value')
+            
+            details_text.insert(tk.END, "Certifications\n", 'header')
+            details_text.insert(tk.END, f"Organic: {'Yes' if product['organic'] else 'No'}\n", 'value')
+            details_text.insert(tk.END, f"Fair Trade: {'Yes' if product['fair_trade'] else 'No'}\n\n", 'value')
+            
+            if product['special_features']:
+                details_text.insert(tk.END, "Special Features\n", 'header')
+                details_text.insert(tk.END, f"{product['special_features']}\n", 'value')
+            
+            details_text.config(state='disabled')
+            
+            ttk.Button(popup, text="Close", command=popup.destroy).pack(pady=10)
 
     # ==============================================
     # BREWING TIMER FUNCTIONS

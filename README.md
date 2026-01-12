@@ -1,6 +1,6 @@
 # Tea Collection Explorer
 
-A Python-based GUI application for exploring tea varieties, brewing methods, history, and tea-growing regions around the world.
+A Python-based GUI application for exploring tea varieties, brewing methods, history, tea-growing regions, and **tea manufacturers** around the world.
 
 ## Features
 
@@ -17,7 +17,27 @@ A Python-based GUI application for exploring tea varieties, brewing methods, his
   - Historical context and interesting facts
   - Price ranges and notable cultivars
 
-### 2. **Tea Guide Viewer**
+### 2. **Tea Brands Database** (NEW!)
+- Browse 28+ global tea manufacturers and brands
+- Search by company name, country, market segment, or certifications
+- Filter by:
+  - Country of origin (UK, USA, Japan, India, Sri Lanka, etc.)
+  - Market segment (mass-market, premium, specialty, luxury)
+  - Certifications (Organic, Fairtrade, B Corp, Royal Warrant, etc.)
+- View detailed company information:
+  - Company history and founding year
+  - Parent company and ownership
+  - Headquarters location
+  - Certifications and sustainability credentials
+- Browse 117+ tea products with details on:
+  - Tea type and category
+  - Bag type (pyramid, round, loose-leaf, etc.)
+  - Pricing in multiple currencies (GBP, USD, EUR, AUD)
+  - Countries where available
+  - Organic and Fair Trade status
+  - Special features
+
+### 3. **Tea Guide Viewer**
 - Complete reference guide to tea varieties
 - Organized by category with detailed descriptions
 - Includes over 200 named varieties
@@ -79,8 +99,8 @@ python3 tea_explorer.py
 
 The application will:
 1. Initialize the database if needed
-2. Load all tea data
-3. Open the GUI with 4 tabs
+2. Load all tea data and manufacturer information
+3. Open the GUI with multiple tabs
 
 ## Using the Application
 
@@ -90,6 +110,19 @@ The application will:
 3. **Filter** by category using the dropdown
 4. **Click** on any tea to see detailed information
 5. **Clear** search to reset filters
+
+### Tea Brands Tab (NEW!)
+1. **Browse** 28+ tea manufacturers worldwide
+2. **Search** by company name
+3. **Filter** by:
+   - Country of origin
+   - Market segment (mass-market, premium, specialty, luxury)
+   - Certifications (Organic, Fairtrade, B Corp, etc.)
+4. **Click** on any company to see:
+   - Company details (history, headquarters, certifications)
+   - Complete product catalog (117+ products)
+5. **Filter products** by name or tea type
+6. **Click** on any product to see detailed pricing and availability
 
 ### Tea Guide Tab
 - Automatically loads the complete tea varieties guide
@@ -125,10 +158,42 @@ Geographic and climate data for tea-growing regions:
 - Climate descriptions
 - Famous teas from each region
 
+### Companies Table (NEW!)
+Tea manufacturers and brands worldwide:
+- Company name and parent company
+- Founded year and headquarters
+- Country of origin
+- Website and certifications
+- Market segment (mass-market, premium, specialty, luxury)
+- Company description
+
+### Products Table (NEW!)
+Complete product catalog for each manufacturer:
+- Product name and company
+- Tea type and category
+- Bag type (pyramid, round, loose-leaf, etc.)
+- Format and quantity
+- Price and currency
+- Countries available
+- Organic and Fair Trade status
+- Special features
+
+### Distribution Table (NEW!)
+Distribution and availability information:
+- Company and country
+- Distribution type (retail, online, wholesale, hospitality)
+- Retailers and channels
+
 ## Customization
 
 ### Adding New Teas
 Edit `tea_database.py` and add entries to the `teas_data` list in the `populate_teas()` method.
+
+### Adding New Companies
+Edit `tea_database.py` and add entries to the `companies_data` list in the `populate_companies()` method.
+
+### Adding New Products
+Edit `tea_database.py` and add entries to the `products_data` list in the `populate_products()` method.
 
 ### Adding New Regions
 Edit `tea_database.py` and add entries to the `regions_data` list in the `populate_regions()` method.

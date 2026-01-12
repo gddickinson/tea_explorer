@@ -35,6 +35,9 @@ class TeaDatabase:
         self.cursor.execute('DROP TABLE IF EXISTS teas')
         self.cursor.execute('DROP TABLE IF EXISTS regions')
         self.cursor.execute('DROP TABLE IF EXISTS cultivars')
+        self.cursor.execute('DROP TABLE IF EXISTS products')
+        self.cursor.execute('DROP TABLE IF EXISTS distribution')
+        self.cursor.execute('DROP TABLE IF EXISTS companies')
         self.conn.commit()
     
     def create_tables(self):
@@ -92,6 +95,55 @@ class TeaDatabase:
                 characteristics TEXT,
                 common_uses TEXT,
                 notes TEXT
+            )
+        ''')
+        
+        # NEW: Companies table for tea manufacturers
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS companies (
+                company_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_name TEXT NOT NULL,
+                parent_company TEXT,
+                founded_year INTEGER,
+                headquarters_city TEXT,
+                country_of_origin TEXT NOT NULL,
+                website TEXT,
+                certifications TEXT,
+                market_segment TEXT CHECK(market_segment IN ('mass-market', 'premium', 'specialty', 'luxury')),
+                description TEXT
+            )
+        ''')
+        
+        # NEW: Products table for tea products
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS products (
+                product_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id INTEGER NOT NULL,
+                product_name TEXT NOT NULL,
+                tea_type TEXT CHECK(tea_type IN ('black', 'green', 'white', 'oolong', 'pu-erh', 'yellow', 'herbal', 'rooibos', 'matcha', 'chai', 'fruit', 'blend')),
+                tea_category TEXT CHECK(tea_category IN ('everyday', 'premium', 'single-origin', 'flavored', 'wellness', 'decaf', 'organic', 'rare')),
+                bag_type TEXT CHECK(bag_type IN ('pyramid', 'round', 'string-tag', 'envelope', 'standard', 'sachet', 'loose-leaf', 'cold-brew')),
+                format TEXT,
+                quantity INTEGER,
+                price REAL,
+                price_currency TEXT CHECK(price_currency IN ('GBP', 'USD', 'EUR', 'AUD', 'INR', 'JPY')),
+                countries_available TEXT,
+                organic BOOLEAN DEFAULT 0,
+                fair_trade BOOLEAN DEFAULT 0,
+                special_features TEXT,
+                FOREIGN KEY (company_id) REFERENCES companies(company_id)
+            )
+        ''')
+        
+        # NEW: Distribution table
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS distribution (
+                distribution_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                company_id INTEGER NOT NULL,
+                country TEXT NOT NULL,
+                distribution_type TEXT CHECK(distribution_type IN ('retail', 'online', 'wholesale', 'hospitality')),
+                retailers TEXT,
+                FOREIGN KEY (company_id) REFERENCES companies(company_id)
             )
         ''')
         
@@ -916,6 +968,297 @@ class TeaDatabase:
         self.conn.commit()
         print(f"✓ Inserted {len(regions_data)} tea regions")
     
+    def populate_companies(self):
+        """Populate tea companies/manufacturers database"""
+        companies_data = [
+            # UK Mass-Market Brands
+            ("PG Tips", "Lipton Teas and Infusions", 1930, "Manchester", "UK", "liptonteas.com", 
+             "Rainforest Alliance", "mass-market", "UK's leading tea brand, pioneered pyramid tea bags in 1996"),
+            
+            ("Yorkshire Tea", "Bettys & Taylors Group", 1977, "Harrogate", "UK", "yorkshiretea.com",
+             "Rainforest Alliance, Royal Warrant", "mass-market", "Family-owned, UK's #1 tea brand since 2019"),
+            
+            ("Tetley", "Tata Consumer Products", 1837, "Greenford", "UK", "tetley.co.uk",
+             "Rainforest Alliance, Ethical Tea Partnership", "mass-market", "Invented round tea bag in 1989, operates in 40+ countries"),
+            
+            ("Typhoo", "Supreme PLC", 1903, "Manchester", "UK", "typhoo.co.uk",
+             "Rainforest Alliance", "mass-market", "Acquired by Supreme PLC December 2024, capacity 1,700 bags/minute"),
+            
+            # UK Premium Brands
+            ("Twinings", "Associated British Foods", 1706, "Andover", "UK", "twinings.co.uk",
+             "Royal Warrant", "premium", "World's oldest tea brand, operating from same London location since 1706"),
+            
+            ("Fortnum & Mason", "Wittington Investments", 1707, "London", "UK", "fortnumandmason.com",
+             "Royal Warrant 300+ years", "luxury", "Royal Blend created 1902 for King Edward VII"),
+            
+            ("Whittard of Chelsea", "Private", 1886, "London", "UK", "whittard.co.uk",
+             "Ethical Tea Partnership", "premium", "50+ UK stores, 75+ tea varieties"),
+            
+            ("Ahmad Tea", "Afshar Family", 1986, "Chandlers Ford", "UK", "ahmadtea.com",
+             "Great Taste Awards 20+", "premium", "Family-owned across 4 generations, 80+ countries"),
+            
+            # UK Specialty Brands
+            ("Clipper Tea", "Ecotone", 1984, "Beaminster", "UK", "clipper-teas.com",
+             "Organic, Fairtrade (World's Largest)", "specialty", "World's largest Fairtrade tea brand, plant-based biodegradable bags"),
+            
+            ("Pukka Herbs", "Lipton Teas and Infusions", 2001, "Bristol", "UK", "pukkaherbs.com",
+             "Organic, FairWild, Fair for Life", "specialty", "Ayurvedic principles, 100% organic, home-compostable bags"),
+            
+            ("Teapigs", "Tata Consumer Products", 2006, "Brentford", "UK", "teapigs.co.uk",
+             "Ethical Tea Partnership, FSC", "specialty", "Tea temples (biodegradable pyramid bags), 40+ countries"),
+            
+            ("Bird & Blend Tea Co", "Independent", 2013, "Brighton", "UK", "birdandblendtea.com",
+             "B Corp (Score 90.1)", "specialty", "100+ unique blends, Tea Mixologists, 18+ UK stores"),
+            
+            # US Mass-Market Brands
+            ("Celestial Seasonings", "Hain Celestial Group", 1969, "Boulder", "USA", "celestialseasonings.com",
+             "Kosher, Non-GMO", "mass-market", "Herbal tea pioneer, 65+ varieties, pillow-style bags save 3.5M lbs waste annually"),
+            
+            ("Bigelow Tea", "Bigelow Family", 1945, "Fairfield", "USA", "bigelowtea.com",
+             "B Corp, Zero Landfill", "mass-market", "100% family-owned 3 generations, Charleston Tea Garden (only American tea garden)"),
+            
+            # US Premium Brands
+            ("Harney & Sons", "Harney Family", 1983, "Millerton", "USA", "harney.com",
+             "Kosher", "premium", "300+ varieties, museum collaborations (Historic Royal Palaces, The Met)"),
+            
+            ("The Republic of Tea", "Rubin Family", 1992, "Larkspur", "USA", "republicoftea.com",
+             "Ethical Tea Partnership, Organic, ROC", "premium", "Cylindrical air-tight tins, Downton Abbey and Bridgerton collections"),
+            
+            # Global Brands
+            ("Lipton", "CVC Capital Partners", 1890, "Amsterdam", "Netherlands", "liptonteas.com",
+             "Rainforest Alliance 98%, 2 B Corp brands", "mass-market", "World's #1 tea company, 400M daily consumers, 110+ countries"),
+            
+            ("Dilmah", "MJF Holdings", 1985, "Peliyagoda", "Sri Lanka", "dilmahtea.com",
+             "Single Origin, SMETA", "premium", "World's first producer-owned tea brand, 3000+ products in 111 countries"),
+            
+            # Asian Brands
+            ("Ito En", "Public (TYO:2593)", 1966, "Tokyo", "Japan", "itoen-global.com",
+             "Organic options", "premium", "Japan's #1 green tea distributor, 4th largest soft drink producer, Oi Ocha bestselling"),
+            
+            ("Yamamotoyama", "Yamamoto Family", 1690, "Tokyo", "Japan", "yamamotoyama.com",
+             "SQF", "premium", "Oldest tea company in Japan, invented Sencha processing and Gyokuro (1835)"),
+            
+            ("TWG Tea", "V3 Group", 2008, "Singapore", "Singapore", "twgtea.com",
+             "Premium sourcing", "luxury", "1000+ tea varieties, 70+ boutiques in 42+ countries, 24-karat gold flakes"),
+            
+            ("Tata Tea", "Tata Consumer Products", 1962, "Mumbai", "India", "tataconsumer.com",
+             "Rainforest Alliance", "mass-market", "World's 2nd-largest tea manufacturer, 54 tea estates across India/Sri Lanka"),
+            
+            # European Brands
+            ("Kusmi Tea", "ORIENTIS GOURMET", 1867, "Paris", "France", "kusmitea.com",
+             "Organic, Made in France", "premium", "Founded St. Petersburg 1867, 100+ boutiques worldwide, organic-certified"),
+            
+            ("Mariage Frères", "Private", 1854, "Paris", "France", "mariagefreres.com",
+             "Premium quality", "luxury", "1103+ tea products, 5 Paris tearooms, served at Claridge's London"),
+            
+            ("Ronnefeldt", "Private", 1823, "Frankfurt", "Germany", "ronnefeldt.com",
+             "Ethical Tea Partnership, EU Organic", "premium", "Hospitality brand at Conrad, Hilton, JW Marriott, Ritz Carlton"),
+            
+            ("Teekanne", "Family-owned", 1882, "Düsseldorf", "Germany", "teekanne.com",
+             "Rainforest Alliance", "mass-market", "Germany's leading tea brand, available across Europe"),
+            
+            ("Barry's Tea", "Barry Family", 1901, "Cork", "Ireland", "barrystea.ie",
+             "Rainforest Alliance", "mass-market", "Ireland's most loved tea brand, 90% East African sourcing"),
+            
+            ("T2 Tea", "Lipton/CVC", 1996, "Melbourne", "Australia", "t2tea.com",
+             "Fairtrade select, B Corp", "premium", "Australian premium brand with creative blends and modern packaging"),
+        ]
+        
+        self.cursor.executemany('''
+            INSERT INTO companies (company_name, parent_company, founded_year, headquarters_city, 
+                                 country_of_origin, website, certifications, market_segment, description)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', companies_data)
+        
+        self.conn.commit()
+        print(f"✓ Inserted {len(companies_data)} tea companies")
+    
+    def populate_products(self):
+        """Populate tea products database"""
+        products_data = [
+            # PG Tips (company_id=1)
+            (1, "PG Tips Original Pyramid", "black", "everyday", "pyramid", "Box", 80, 3.25, "GBP", "UK, Ireland", 0, 0, "Blend 777, biodegradable bags"),
+            (1, "PG Tips Original Pyramid", "black", "everyday", "pyramid", "Box", 160, 4.75, "GBP", "UK, Ireland", 0, 0, "Blend 777, biodegradable bags"),
+            (1, "PG Tips Extra Strong", "black", "everyday", "pyramid", "Box", 80, 3.50, "GBP", "UK, Ireland", 0, 0, "Stronger blend"),
+            (1, "PG Tips Decaf", "black", "decaf", "pyramid", "Box", 80, 3.75, "GBP", "UK, Ireland", 0, 0, "Decaffeinated"),
+            (1, "PG Tips Scottish Blend", "black", "everyday", "pyramid", "Box", 80, 3.50, "GBP", "UK, Scotland", 0, 0, "Designed for Scottish water"),
+            (1, "PG Tips Loose Leaf", "black", "everyday", "loose-leaf", "Pack", 250, 3.25, "GBP", "UK, Ireland", 0, 0, "Traditional loose tea"),
+            
+            # Yorkshire Tea (company_id=2)
+            (2, "Yorkshire Tea Original", "black", "everyday", "standard", "Box", 80, 3.75, "GBP", "UK, Ireland", 0, 0, "Britain's #1 tea"),
+            (2, "Yorkshire Tea Original", "black", "everyday", "standard", "Box", 160, 5.75, "GBP", "UK, Ireland", 0, 0, "Britain's #1 tea"),
+            (2, "Yorkshire Gold", "black", "premium", "standard", "Box", 80, 4.25, "GBP", "UK, Ireland", 0, 0, "Premium blend"),
+            (2, "Yorkshire Decaf", "black", "decaf", "standard", "Box", 80, 4.25, "GBP", "UK, Ireland", 0, 0, "Decaffeinated"),
+            (2, "Yorkshire Biscuit Brew", "black", "flavored", "standard", "Box", 40, 3.25, "GBP", "UK, Ireland", 0, 0, "Biscuit flavored"),
+            (2, "Yorkshire Bedtime Brew", "herbal", "wellness", "standard", "Box", 40, 3.25, "GBP", "UK, Ireland", 0, 0, "Caffeine-free blend"),
+            (2, "Yorkshire Loose Leaf", "black", "everyday", "loose-leaf", "Pack", 250, 4.50, "GBP", "UK, Ireland", 0, 0, "Loose leaf format"),
+            
+            # Tetley (company_id=3)
+            (3, "Tetley Original Round", "black", "everyday", "round", "Box", 80, 2.75, "GBP", "UK, Ireland, USA, Canada", 0, 0, "Iconic round bag"),
+            (3, "Tetley Original Round", "black", "everyday", "round", "Box", 240, 5.20, "GBP", "UK, Ireland, USA, Canada", 0, 0, "Family size"),
+            (3, "Tetley Extra Strong", "black", "everyday", "round", "Box", 75, 2.75, "GBP", "UK, Ireland", 0, 0, "Extra strength"),
+            (3, "Tetley Decaf", "black", "decaf", "round", "Box", 80, 3.25, "GBP", "UK, Ireland, USA, Canada", 0, 0, "Decaffeinated"),
+            (3, "Tetley Pure Green", "green", "everyday", "standard", "Box", 50, 2.00, "GBP", "UK, Ireland, USA", 0, 0, "Pure green tea"),
+            (3, "Tetley Super Fruits Immune", "fruit", "wellness", "envelope", "Box", 20, 2.39, "GBP", "UK, Ireland", 0, 0, "Immune support blend"),
+            
+            # Typhoo (company_id=4)
+            (4, "Typhoo Premium", "black", "everyday", "standard", "Box", 80, 2.99, "GBP", "UK", 0, 0, "Premium blend"),
+            (4, "Typhoo Premium", "black", "everyday", "standard", "Box", 240, 5.00, "GBP", "UK", 0, 0, "Family pack"),
+            (4, "Typhoo Gold Luxury", "black", "premium", "standard", "Box", 80, 3.25, "GBP", "UK", 0, 0, "Luxury blend"),
+            (4, "Typhoo Decaf", "black", "decaf", "standard", "Box", 80, 3.35, "GBP", "UK", 0, 0, "Decaffeinated"),
+            
+            # Twinings (company_id=5)
+            (5, "Twinings English Breakfast", "black", "everyday", "standard", "Box", 120, 5.59, "GBP", "100+ countries", 0, 0, "Classic blend"),
+            (5, "Twinings Earl Grey", "black", "flavored", "standard", "Box", 120, 5.59, "GBP", "100+ countries", 0, 0, "Bergamot flavored"),
+            (5, "Twinings Superblends Sleep", "herbal", "wellness", "envelope", "Box", 20, 2.85, "GBP", "UK, Europe, USA", 0, 0, "Sleep support"),
+            (5, "Twinings Superblends Immune", "herbal", "wellness", "envelope", "Box", 20, 2.85, "GBP", "UK, Europe, USA", 0, 0, "Immune support"),
+            (5, "Twinings Fruit & Herbal Selection", "herbal", "flavored", "standard", "Box", 20, 2.52, "GBP", "100+ countries", 0, 0, "Variety pack"),
+            (5, "Twinings Discovery Collection", "blend", "premium", "loose-leaf", "Tin", 125, 2.65, "GBP", "Global", 0, 0, "Loose leaf selection"),
+            
+            # Fortnum & Mason (company_id=6)
+            (6, "Royal Blend", "black", "premium", "sachet", "Box", 25, 7.95, "GBP", "UK, Global online", 0, 0, "Created for King Edward VII 1902"),
+            (6, "Royal Blend", "black", "premium", "loose-leaf", "Caddy", 250, 17.95, "GBP", "UK, Global online", 0, 0, "Premium caddy"),
+            (6, "Smoky Earl Grey", "black", "flavored", "sachet", "Box", 25, 8.95, "GBP", "UK, Global online", 0, 0, "Bergamot + Lapsang + Gunpowder"),
+            (6, "Queen Anne Blend", "black", "premium", "sachet", "Box", 25, 8.95, "GBP", "UK, Global online", 0, 0, "TGFOP Assam + Ceylon"),
+            (6, "Six Mini Famous Teas", "blend", "premium", "loose-leaf", "Gift Set", 6, 32.95, "GBP", "UK, Global online", 0, 0, "50g tins x6"),
+            
+            # Whittard of Chelsea (company_id=7)
+            (7, "English Breakfast", "black", "everyday", "standard", "Box", 50, 6.00, "GBP", "UK, Taiwan", 0, 0, "Classic breakfast blend"),
+            (7, "Earl Grey No. 33", "black", "flavored", "standard", "Box", 50, 6.00, "GBP", "UK, Taiwan", 0, 0, "Signature Earl Grey"),
+            (7, "Loose Leaf Pouch", "black", "premium", "loose-leaf", "Pouch", 100, 9.95, "GBP", "UK, Taiwan", 0, 0, "Resealable pouch"),
+            (7, "Loose Leaf Caddy", "black", "premium", "loose-leaf", "Caddy", 100, 13.95, "GBP", "UK, Taiwan", 0, 0, "Metal caddy"),
+            
+            # Ahmad Tea (company_id=8)
+            (8, "English Breakfast", "black", "everyday", "standard", "Box", 100, 5.26, "GBP", "80+ countries", 0, 0, "Popular breakfast tea"),
+            (8, "English Breakfast", "black", "everyday", "standard", "Box", 300, 8.99, "GBP", "80+ countries", 0, 0, "Family size"),
+            (8, "Earl Grey", "black", "flavored", "envelope", "Box", 20, 3.30, "GBP", "80+ countries", 0, 0, "Premium enveloped"),
+            (8, "Loose Leaf Caddy", "black", "premium", "loose-leaf", "Caddy", 500, 11.00, "GBP", "80+ countries", 0, 0, "Large caddy"),
+            
+            # Clipper Tea (company_id=9)
+            (9, "Organic Fairtrade Everyday", "black", "organic", "standard", "Box", 80, 4.79, "GBP", "UK, Europe, USA", 1, 1, "World's largest Fairtrade tea brand"),
+            (9, "Organic Pure Green", "green", "organic", "standard", "Box", 80, 5.19, "GBP", "UK, Europe, USA", 1, 1, "Pure organic green"),
+            (9, "Organic Lemon & Ginger", "herbal", "organic", "standard", "Box", 25, 4.39, "GBP", "UK, Europe, USA", 1, 0, "Herbal infusion"),
+            (9, "Organic Decaf", "black", "decaf", "standard", "Box", 25, 4.39, "GBP", "UK, Europe, USA", 1, 1, "Organic decaf"),
+            
+            # Pukka Herbs (company_id=10)
+            (10, "Night Time", "herbal", "wellness", "envelope", "Box", 20, 3.62, "GBP", "UK, Europe, USA, 40+ countries", 1, 0, "Sleep support, Ayurvedic"),
+            (10, "Three Ginger", "herbal", "wellness", "envelope", "Box", 20, 3.62, "GBP", "UK, Europe, USA, 40+ countries", 1, 0, "Digestive support"),
+            (10, "Elderberry & Echinacea", "herbal", "wellness", "envelope", "Box", 20, 3.62, "GBP", "UK, Europe, USA, 40+ countries", 1, 0, "Immune support"),
+            (10, "Supreme Matcha Green", "matcha", "wellness", "envelope", "Box", 20, 3.62, "GBP", "UK, Europe, USA, 40+ countries", 1, 0, "Matcha green tea"),
+            
+            # Teapigs (company_id=11)
+            (11, "Everyday Brew", "black", "everyday", "pyramid", "Box", 15, 4.00, "GBP", "40+ countries", 0, 0, "Tea temples, whole leaf"),
+            (11, "Darjeeling Earl Grey", "black", "flavored", "pyramid", "Box", 15, 4.00, "GBP", "40+ countries", 0, 0, "Premium Earl Grey"),
+            (11, "Mao Feng Green", "green", "premium", "pyramid", "Box", 15, 4.00, "GBP", "40+ countries", 0, 0, "Chinese green tea"),
+            (11, "Silver Tip White", "white", "premium", "pyramid", "Box", 15, 5.00, "GBP", "40+ countries", 0, 0, "Premium white tea"),
+            
+            # Bird & Blend (company_id=12)
+            (12, "Cream Egg", "blend", "flavored", "loose-leaf", "Pouch", 50, 6.95, "GBP", "UK, USA", 0, 0, "Seasonal bestseller"),
+            (12, "Gingerbread Chai", "chai", "flavored", "loose-leaf", "Pouch", 50, 6.95, "GBP", "UK, USA", 0, 0, "Seasonal chai"),
+            (12, "Chocolate Digestives", "blend", "flavored", "loose-leaf", "Pouch", 50, 6.95, "GBP", "UK, USA", 0, 0, "Creative blend"),
+            (12, "Sticky Chai", "chai", "flavored", "loose-leaf", "Pouch", 50, 6.95, "GBP", "UK, USA", 0, 0, "Signature chai"),
+            
+            # Celestial Seasonings (company_id=13)
+            (13, "Sleepytime", "herbal", "wellness", "standard", "Box", 20, 5.49, "USD", "USA, Canada", 0, 0, "Iconic herbal blend"),
+            (13, "Sleepytime", "herbal", "wellness", "standard", "Box", 40, 8.29, "USD", "USA, Canada", 0, 0, "Family size"),
+            (13, "Red Zinger", "herbal", "flavored", "standard", "Box", 20, 5.49, "USD", "USA, Canada", 0, 0, "Hibiscus blend"),
+            (13, "Bengal Spice", "herbal", "flavored", "standard", "Box", 20, 5.49, "USD", "USA, Canada", 0, 0, "Caffeine-free chai"),
+            (13, "Cold Brew Iced Tea", "herbal", "flavored", "cold-brew", "Box", 18, 5.29, "USD", "USA, Canada", 0, 0, "Cold brew bags"),
+            
+            # Bigelow Tea (company_id=14)
+            (14, "Constant Comment", "black", "flavored", "standard", "Box", 20, 5.00, "USD", "USA, Canada", 0, 0, "Signature blend since 1945"),
+            (14, "Earl Grey", "black", "flavored", "standard", "Box", 20, 5.00, "USD", "USA, Canada", 0, 0, "Classic Earl Grey"),
+            (14, "Bigelow Benefits", "herbal", "wellness", "standard", "Box", 18, 6.00, "USD", "USA, Canada", 0, 0, "Wellness line"),
+            (14, "steep by Bigelow", "blend", "organic", "pyramid", "Box", 20, 7.00, "USD", "USA, Canada", 1, 0, "Organic premium line"),
+            
+            # Harney & Sons (company_id=15)
+            (15, "Hot Cinnamon Spice", "black", "flavored", "loose-leaf", "Tin", 4, 13.00, "USD", "USA, Global", 0, 0, "Bestselling spiced tea"),
+            (15, "Paris", "black", "flavored", "loose-leaf", "Tin", 4, 13.00, "USD", "USA, Global", 0, 0, "Fruity black tea"),
+            (15, "Earl Grey Supreme", "black", "flavored", "sachet", "Tin", 20, 13.50, "USD", "USA, Global", 0, 0, "Premium sachet tin"),
+            (15, "Best Sellers Set", "blend", "premium", "loose-leaf", "Gift Set", 4, 42.00, "USD", "USA, Global", 0, 0, "4 tins sampler"),
+            
+            # Republic of Tea (company_id=16)
+            (16, "Ginger Peach", "black", "flavored", "round", "Tin", 50, 15.00, "USD", "USA, Global", 0, 0, "Signature round bags"),
+            (16, "British Breakfast", "black", "everyday", "round", "Tin", 50, 15.00, "USD", "USA, Global", 0, 0, "Strong breakfast blend"),
+            (16, "HiCAF Earl Grey", "black", "flavored", "round", "Tin", 36, 20.00, "USD", "USA, Global", 0, 0, "High caffeine blend"),
+            (16, "Beautifying Botanicals", "herbal", "wellness", "round", "Tin", 36, 18.00, "USD", "USA, Global", 0, 0, "Beauty blend"),
+            
+            # Lipton (company_id=17)
+            (17, "Yellow Label", "black", "everyday", "standard", "Box", 100, 10.00, "USD", "110+ countries", 0, 0, "World's #1 tea"),
+            (17, "Yellow Label", "black", "everyday", "loose-leaf", "Pack", 200, 8.00, "USD", "110+ countries", 0, 0, "Loose leaf format"),
+            (17, "Yellow Label", "black", "everyday", "loose-leaf", "Pack", 900, 28.00, "USD", "110+ countries", 0, 0, "Large pack"),
+            (17, "Pyramid Bags", "black", "premium", "pyramid", "Box", 20, 5.00, "USD", "Global", 0, 0, "Premium pyramid range"),
+            
+            # Dilmah (company_id=18)
+            (18, "Premium Ceylon", "black", "premium", "standard", "Box", 50, 4.00, "USD", "111 countries", 0, 0, "Single origin Ceylon"),
+            (18, "t-Series Designer Gourmet", "black", "premium", "sachet", "Box", 20, 15.00, "USD", "111 countries", 0, 0, "Designer gourmet range"),
+            (18, "Watte Collection", "black", "rare", "loose-leaf", "Caddy", 100, 20.00, "USD", "Global", 0, 0, "Estate-specific teas"),
+            (18, "Ceylon Iced Tea", "black", "everyday", "sachet", "Bottle", 500, 3.00, "USD", "Global", 0, 0, "Ready-to-drink"),
+            
+            # Ito En (company_id=19)
+            (19, "Oi Ocha Sencha", "green", "everyday", "sachet", "Bottles", 12, 22.00, "USD", "Japan, USA, Asia", 0, 0, "Bestselling green tea"),
+            (19, "Premium Tea Bags", "green", "premium", "standard", "Box", 20, 11.00, "USD", "Japan, USA, Global", 0, 0, "Various green teas"),
+            (19, "Matcha Green Tea", "matcha", "premium", "loose-leaf", "Tin", 100, 33.00, "USD", "Global", 0, 0, "Premium matcha"),
+            (19, "Instant Stick Tea", "green", "premium", "sachet", "Box", 10, 9.00, "USD", "Japan, USA", 0, 0, "Instant tea sticks"),
+            
+            # Yamamotoyama (company_id=20)
+            (20, "Sencha Green Tea", "green", "everyday", "standard", "Box", 16, 4.00, "USD", "USA, Japan", 0, 0, "Traditional Sencha"),
+            (20, "Hojicha Roasted", "green", "everyday", "standard", "Box", 20, 7.00, "USD", "USA, Japan", 0, 0, "Roasted green tea"),
+            (20, "Gyokuro Premium", "green", "premium", "loose-leaf", "Tin", 50, 25.00, "USD", "Japan, USA", 0, 0, "Premium shade-grown"),
+            
+            # TWG Tea (company_id=21)
+            (21, "Singapore Breakfast", "black", "premium", "loose-leaf", "Haute Couture Tin", 100, 47.50, "USD", "42+ countries", 0, 0, "Signature blend"),
+            (21, "1837 Black Tea", "black", "premium", "loose-leaf", "Tin", 100, 47.50, "USD", "42+ countries", 0, 0, "Heritage blend"),
+            (21, "Gold Yin Zhen", "white", "rare", "loose-leaf", "Tin", 100, 110.00, "USD", "42+ countries", 0, 0, "24-karat gold flakes"),
+            
+            # Tata Tea (company_id=22)
+            (22, "Tata Tea Premium", "black", "everyday", "loose-leaf", "Pack", 250, 1.60, "USD", "India, Middle East", 0, 0, "India's #1 tea"),
+            (22, "Tata Tea Gold", "black", "premium", "loose-leaf", "Pack", 250, 2.25, "USD", "India, Middle East", 0, 0, "Premium blend"),
+            (22, "1868 Heritage", "black", "premium", "loose-leaf", "Caddy", 100, 8.00, "USD", "India, Global", 0, 0, "Heritage collection"),
+            
+            # Kusmi Tea (company_id=23)
+            (23, "Detox", "green", "wellness", "loose-leaf", "Tin", 100, 14.00, "EUR", "Europe, USA, Global", 1, 0, "Wellness blend"),
+            (23, "Anastasia", "black", "flavored", "loose-leaf", "Tin", 100, 14.00, "EUR", "Europe, USA, Global", 1, 0, "Citrus blend"),
+            (23, "Miniature Tins", "blend", "premium", "loose-leaf", "Mini Tin", 25, 7.00, "EUR", "Europe, USA, Global", 1, 0, "Sample tins"),
+            (23, "Tea Bag Box", "blend", "premium", "sachet", "Box", 20, 15.00, "EUR", "Europe, USA, Global", 1, 0, "Premium sachets"),
+            
+            # Mariage Frères (company_id=24)
+            (24, "Marco Polo", "black", "flavored", "loose-leaf", "Canister", 100, 20.00, "EUR", "France, UK, Global", 0, 0, "Flagship fruity black"),
+            (24, "Earl Grey French Blue", "black", "flavored", "loose-leaf", "Canister", 100, 18.00, "EUR", "France, UK, Global", 0, 0, "Bergamot + blue flowers"),
+            (24, "Premium Grand Cru", "black", "rare", "loose-leaf", "Canister", 100, 36.00, "EUR", "France, UK, Global", 0, 0, "Rare tea collection"),
+            
+            # Ronnefeldt (company_id=25)
+            (25, "Teavelope English Breakfast", "black", "premium", "envelope", "Box", 25, 8.00, "EUR", "Europe, Hospitality Global", 0, 0, "Premium envelope bags"),
+            (25, "LeafCup Assorted", "blend", "premium", "pyramid", "Box", 15, 20.00, "EUR", "Europe, Hospitality Global", 0, 0, "Premium pyramid sachets"),
+            (25, "Loose Tea Caddy", "black", "premium", "loose-leaf", "Caddy", 100, 18.00, "EUR", "Europe, Hospitality Global", 0, 0, "Professional quality"),
+            
+            # Teekanne (company_id=26)
+            (26, "Classic Selection", "black", "everyday", "standard", "Box", 25, 2.99, "EUR", "Germany, Europe", 0, 0, "German market leader"),
+            (26, "Fresh Orange", "fruit", "flavored", "standard", "Box", 20, 2.49, "EUR", "Germany, Europe", 0, 0, "Fruit infusion"),
+            (26, "Organic Selection", "blend", "organic", "standard", "Box", 20, 3.99, "EUR", "Germany, Europe", 1, 0, "Organic range"),
+            
+            # Barry's Tea (company_id=27)
+            (27, "Gold Blend", "black", "everyday", "standard", "Box", 80, 7.50, "EUR", "Ireland, UK, USA", 0, 0, "Ireland's favorite"),
+            (27, "Irish Breakfast", "black", "everyday", "standard", "Box", 80, 7.50, "EUR", "Ireland, UK, USA", 0, 0, "Strong breakfast blend"),
+            (27, "Master Blend", "black", "premium", "standard", "Box", 80, 7.50, "EUR", "Ireland, UK, USA", 0, 0, "Premium blend"),
+            (27, "Decaf Blend", "black", "decaf", "standard", "Box", 80, 8.50, "EUR", "Ireland, UK, USA", 0, 0, "Decaffeinated"),
+            
+            # T2 Tea (company_id=28)
+            (28, "English Breakfast", "black", "everyday", "loose-leaf", "Tin", 100, 12.00, "AUD", "Australia, USA, Asia", 0, 0, "Modern packaging"),
+            (28, "Go Go Goa", "chai", "flavored", "loose-leaf", "Tin", 100, 12.00, "AUD", "Australia, USA, Asia", 0, 0, "Spiced chai"),
+            (28, "Gorgeous Geisha", "green", "flavored", "loose-leaf", "Tin", 100, 12.00, "AUD", "Australia, USA, Asia", 0, 0, "Japanese green tea"),
+            (28, "Gift Set Collection", "blend", "premium", "loose-leaf", "Gift Set", 4, 45.00, "AUD", "Australia, USA, Asia", 0, 0, "Premium gift set"),
+        ]
+        
+        self.cursor.executemany('''
+            INSERT INTO products (company_id, product_name, tea_type, tea_category, bag_type, format, 
+                                quantity, price, price_currency, countries_available, organic, fair_trade, special_features)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', products_data)
+        
+        self.conn.commit()
+        print(f"✓ Inserted {len(products_data)} tea products")
+    
     def initialize_database(self, force_rebuild=False):
         """Create and populate the entire database"""
         self.connect()
@@ -935,10 +1278,14 @@ class TeaDatabase:
             self.populate_teas()
             self.populate_cultivars()
             self.populate_regions()
+            self.populate_companies()
+            self.populate_products()
             print("\n✓ Database initialization complete!")
             print(f"  Total teas: {len([1 for _ in self.cursor.execute('SELECT * FROM teas')])} varieties")
             print(f"  Total cultivars: {len([1 for _ in self.cursor.execute('SELECT * FROM cultivars')])} varieties")
             print(f"  Total regions: {len([1 for _ in self.cursor.execute('SELECT * FROM regions')])} regions")
+            print(f"  Total companies: {len([1 for _ in self.cursor.execute('SELECT * FROM companies')])} manufacturers")
+            print(f"  Total products: {len([1 for _ in self.cursor.execute('SELECT * FROM products')])} products")
         else:
             print(f"Database already contains {tea_count} teas")
             print("Use force_rebuild=True to recreate database")
