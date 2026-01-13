@@ -1,6 +1,6 @@
 # Tea Collection Explorer
 
-A Python-based GUI application for exploring tea varieties, brewing methods, history, tea-growing regions, and **tea manufacturers** around the world.
+A Python-based GUI application for exploring tea varieties, brewing methods, history, tea-growing regions, **tea manufacturers**, and **herbal tisanes** from around the world.
 
 ## Features
 
@@ -17,7 +17,7 @@ A Python-based GUI application for exploring tea varieties, brewing methods, his
   - Historical context and interesting facts
   - Price ranges and notable cultivars
 
-### 2. **Tea Brands Database** (NEW!)
+### 2. **Tea Brands Database**
 - Browse 28+ global tea manufacturers and brands
 - Search by company name, country, market segment, or certifications
 - Filter by:
@@ -37,13 +37,43 @@ A Python-based GUI application for exploring tea varieties, brewing methods, his
   - Organic and Fair Trade status
   - Special features
 
-### 3. **Tea Guide Viewer**
+### 3. **Tisanes & Herbal Teas Database** (NEW!)
+- Comprehensive database of 45+ herbal teas from global traditions
+- Browse herbs from:
+  - Western Herbalism
+  - Traditional Chinese Medicine (TCM)
+  - Ayurveda
+  - African traditions
+  - South American traditions
+  - Middle Eastern traditions
+  - Indigenous cultures
+- Search and filter by:
+  - Tradition/origin
+  - Caffeine content
+  - Safety level
+- View detailed information for each tisane:
+  - Scientific name and plant family
+  - Traditional uses and research-backed benefits
+  - Active compounds and properties
+  - **Prominent safety information** including:
+    - Risk level assessment
+    - Pregnancy/nursing safety
+    - Contraindications
+    - Drug interactions
+    - Maximum dosages
+  - TCM and Ayurvedic properties where applicable
+  - Brewing instructions and flavor profiles
+  - Cultural significance
+- Browse 19+ tisane manufacturers worldwide
+- Safety warnings clearly displayed with color coding
+
+### 4. **Tea Guide Viewer**
 - Complete reference guide to tea varieties
 - Organized by category with detailed descriptions
 - Includes over 200 named varieties
 - Processing methods and cultivation information
 
-### 3. **Tea History Timeline**
+### 5. **Tea History Timeline**
 - Detailed history from 2737 BCE to present
 - Stories of legendary origins
 - Lu Yu and the Classic of Tea
@@ -53,7 +83,7 @@ A Python-based GUI application for exploring tea varieties, brewing methods, his
 - Development of Indian and Ceylon tea industries
 - Modern tea culture and global industry
 
-### 4. **Interactive World Map**
+### 6. **Interactive World Map**
 - Visual representation of major tea-growing regions
 - 12 documented regions across Asia
 - Clickable markers for detailed region information
@@ -124,6 +154,25 @@ The application will:
 5. **Filter products** by name or tea type
 6. **Click** on any product to see detailed pricing and availability
 
+### Tisanes Tab (NEW!)
+1. **Browse** 45+ herbal teas from global traditions
+2. **Search** by name or traditional uses
+3. **Filter** by:
+   - Tradition (Western Herbalism, TCM, Ayurveda, African, etc.)
+   - Caffeine content (None, Low, Contains Caffeine)
+   - Safety level (Generally Safe, Use with Caution, High Risk)
+4. **Click** on any tisane to see:
+   - Complete botanical and traditional information
+   - **Safety warnings** prominently displayed
+   - TCM and Ayurvedic properties
+   - Research-backed benefits
+   - Brewing instructions
+   - Cultural significance
+5. **View Manufacturers** button to browse 19+ tisane companies
+6. **Safety indicators** in the list:
+   - ⚠️ = High risk herbs
+   - ⚡ = Use with caution
+
 ### Tea Guide Tab
 - Automatically loads the complete tea varieties guide
 - Scroll through comprehensive information
@@ -141,6 +190,8 @@ The application will:
 - See which teas come from each region
 
 ## Database Structure
+
+### Tea Database (tea_collection.db)
 
 ### Teas Table
 Contains detailed information about each tea variety including:
@@ -183,6 +234,61 @@ Distribution and availability information:
 - Company and country
 - Distribution type (retail, online, wholesale, hospitality)
 - Retailers and channels
+
+### Tisane Database (tisane_collection.db) (NEW!)
+
+### Tisanes Table
+Comprehensive herbal tea information:
+- Scientific name and plant family
+- Common names in multiple languages (JSON)
+- Plant part used and origin
+- Tradition (Western, TCM, Ayurveda, etc.)
+- Traditional uses and research benefits
+- Active compounds and caffeine content
+- Flavor, aroma, and appearance
+- Brewing parameters
+- TCM and Ayurvedic properties (JSON)
+- Cultural significance
+- Price range and availability
+
+### Safety Info Table (NEW!)
+Critical safety information for each tisane:
+- Risk level (Low, Moderate, High, Very High)
+- Pregnancy and nursing safety
+- Child safety warnings
+- Pre-surgery warnings
+- Contraindications
+- Drug interactions
+- Maximum daily dosage
+- Duration limits
+- Evidence quality
+
+### Manufacturers Table (Tisanes) (NEW!)
+Herbal tea and tisane manufacturers:
+- Company name and parent company
+- Founded year and headquarters
+- Certifications and market segment
+- Notable products and description
+
+### Plant Families Table (NEW!)
+Information about botanical families:
+- Family characteristics
+- Major genera
+- Common uses in herbal medicine
+
+### Regions Table (Tisanes) (NEW!)
+Geographic data for herb cultivation:
+- Location coordinates
+- Climate type
+- Primary herbs grown
+- Key producers
+
+### Traditional Systems Table (NEW!)
+Information about herbal medicine traditions:
+- System name (TCM, Ayurveda, etc.)
+- Origin region and time period
+- Key texts and figures
+- Core principles and descriptions
 
 ## Customization
 

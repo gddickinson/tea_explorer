@@ -31,10 +31,13 @@ class TeaExplorerApp:
         self.root.title("Tea Collection Explorer - Enhanced Edition")
         self.root.geometry("1400x900")
 
-        # Database connection
+        # Database connections
         self.db_path = "tea_collection.db"
+        self.tisane_db_path = "tisane_collection.db"
         self.conn = None
+        self.tisane_conn = None
         self.connect_db()
+        self.connect_tisane_db()
 
         # File paths
         script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -67,6 +70,7 @@ class TeaExplorerApp:
         self.create_database_tab()
         self.create_cultivars_tab()
         self.create_brands_tab()  # NEW: Tea Brands/Manufacturers tab
+        self.create_tisanes_tab()  # NEW: Tisanes/Herbal Teas tab
         self.create_brewing_tab()
         self.create_journal_tab()
         self.create_comparison_tab()
@@ -88,6 +92,14 @@ class TeaExplorerApp:
             self.conn.row_factory = sqlite3.Row
         except sqlite3.Error as e:
             messagebox.showerror("Database Error", f"Could not connect to database: {e}")
+
+    def connect_tisane_db(self):
+        """Establish tisane database connection"""
+        try:
+            self.tisane_conn = sqlite3.connect(self.tisane_db_path)
+            self.tisane_conn.row_factory = sqlite3.Row
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Could not connect to tisane database: {e}")
 
     def create_menu_bar(self):
         """Create application menu bar"""
@@ -463,6 +475,110 @@ class TeaExplorerApp:
         
         # Load companies
         self.load_companies()
+
+    def create_tisanes_tab(self):
+        """Create tisanes/herbal teas browser tab"""
+        tisanes_frame = ttk.Frame(self.notebook)
+        self.notebook.add(tisanes_frame, text="🌿 Tisanes")
+        
+        # Header with search
+        header_frame = ttk.Frame(tisanes_frame)
+        header_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Label(header_frame, text="Herbal Teas & Tisanes Explorer",
+                 style='Title.TLabel').pack(side='left')
+        
+        # Search and filters
+        search_filter_frame = ttk.Frame(tisanes_frame)
+        search_filter_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
+        # Row 1: Basic search
+        row1 = ttk.Frame(search_filter_frame)
+        row1.pack(fill='x', pady=(0, 5))
+        
+        ttk.Label(row1, text="Search:").pack(side='left', padx=5)
+        self.tisane_search_var = tk.StringVar()
+        tisane_search = ttk.Entry(row1, textvariable=self.tisane_search_var, width=30)
+        tisane_search.pack(side='left', padx=5)
+        tisane_search.bind('<KeyRelease>', self.on_tisane_search)
+        
+        ttk.Label(row1, text="Tradition:").pack(side='left', padx=(20, 5))
+        self.tisane_tradition_var = tk.StringVar(value="All")
+        tradition_combo = ttk.Combobox(row1, textvariable=self.tisane_tradition_var,
+                                      values=["All", "Western Herbalism", "TCM", "Ayurveda", 
+                                             "African", "South American", "Middle Eastern", "Indigenous"],
+                                      state='readonly', width=18)
+        tradition_combo.pack(side='left', padx=5)
+        tradition_combo.bind('<<ComboboxSelected>>', self.on_tisane_search)
+        
+        ttk.Button(row1, text="Clear", command=self.clear_tisane_filters).pack(side='left', padx=5)
+        
+        # Row 2: Advanced filters
+        row2 = ttk.Frame(search_filter_frame)
+        row2.pack(fill='x')
+        
+        ttk.Label(row2, text="Caffeine:").pack(side='left', padx=5)
+        self.tisane_caffeine_var = tk.StringVar(value="All")
+        caffeine_combo = ttk.Combobox(row2, textvariable=self.tisane_caffeine_var,
+                                     values=["All", "None", "Low", "Contains Caffeine"],
+                                     state='readonly', width=15)
+        caffeine_combo.pack(side='left', padx=5)
+        caffeine_combo.bind('<<ComboboxSelected>>', self.on_tisane_search)
+        
+        ttk.Label(row2, text="Safety:").pack(side='left', padx=(20, 5))
+        self.tisane_safety_var = tk.StringVar(value="All")
+        safety_combo = ttk.Combobox(row2, textvariable=self.tisane_safety_var,
+                                   values=["All", "Generally Safe", "Use with Caution", "High Risk"],
+                                   state='readonly', width=18)
+        safety_combo.pack(side='left', padx=5)
+        safety_combo.bind('<<ComboboxSelected>>', self.on_tisane_search)
+        
+        ttk.Button(row2, text="🏪 View Manufacturers",
+                  command=self.show_tisane_manufacturers).pack(side='left', padx=(20, 5))
+        
+        # Main content frame
+        content_frame = ttk.Frame(tisanes_frame)
+        content_frame.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        # Left: Tisanes list
+        list_frame = ttk.Frame(content_frame)
+        list_frame.pack(side='left', fill='both', expand=True, padx=(0, 5))
+        
+        ttk.Label(list_frame, text="Tisane Varieties", style='Header.TLabel').pack(anchor='w', pady=5)
+        
+        list_scroll = ttk.Frame(list_frame)
+        list_scroll.pack(fill='both', expand=True)
+        
+        self.tisanes_listbox = tk.Listbox(list_scroll, font=('Arial', 10))
+        tisanes_scrollbar = ttk.Scrollbar(list_scroll, orient='vertical', command=self.tisanes_listbox.yview)
+        self.tisanes_listbox.configure(yscrollcommand=tisanes_scrollbar.set)
+        
+        self.tisanes_listbox.pack(side='left', fill='both', expand=True)
+        tisanes_scrollbar.pack(side='right', fill='y')
+        
+        self.tisanes_listbox.bind('<<ListboxSelect>>', self.on_tisane_select)
+        self.tisane_data = []
+        
+        # Right: Tisane details
+        details_frame = ttk.Frame(content_frame)
+        details_frame.pack(side='right', fill='both', expand=True)
+        
+        ttk.Label(details_frame, text="Tisane Details", style='Header.TLabel').pack(anchor='w', pady=5)
+        
+        self.tisane_details_text = scrolledtext.ScrolledText(details_frame, wrap=tk.WORD,
+                                                             font=('Arial', 10), height=30)
+        self.tisane_details_text.pack(fill='both', expand=True)
+        
+        # Configure text tags
+        self.tisane_details_text.tag_configure('title', font=('Arial', 16, 'bold'), foreground='#2d5016')
+        self.tisane_details_text.tag_configure('header', font=('Arial', 11, 'bold'), foreground='#4a4a4a')
+        self.tisane_details_text.tag_configure('value', font=('Arial', 10))
+        self.tisane_details_text.tag_configure('warning', font=('Arial', 10, 'bold'), foreground='#d32f2f')
+        self.tisane_details_text.tag_configure('caution', font=('Arial', 10), foreground='#f57c00')
+        self.tisane_details_text.tag_configure('safe', font=('Arial', 10), foreground='#388e3c')
+        
+        # Load tisanes
+        self.load_tisanes()
 
     def create_brewing_tab(self):
         """Create brewing timer tab"""
@@ -1140,6 +1256,344 @@ class TeaExplorerApp:
             details_text.config(state='disabled')
             
             ttk.Button(popup, text="Close", command=popup.destroy).pack(pady=10)
+
+    # ==============================================
+    # TISANES TAB FUNCTIONS
+    # ==============================================
+
+    def load_tisanes(self, search_term='', tradition='All', caffeine='All', safety='All'):
+        """Load tisanes list with filters"""
+        self.tisanes_listbox.delete(0, tk.END)
+        self.tisane_data = []
+        
+        try:
+            cursor = self.tisane_conn.cursor()
+            
+            query = """
+                SELECT t.*, s.risk_level, s.pregnancy_safety
+                FROM tisanes t
+                LEFT JOIN safety_info s ON t.id = s.tisane_id
+                WHERE 1=1
+            """
+            params = []
+            
+            if tradition != 'All':
+                query += " AND t.tradition LIKE ?"
+                params.append(f'%{tradition}%')
+            
+            if caffeine != 'All':
+                if caffeine == 'None':
+                    query += " AND (t.caffeine_content = 'None' OR t.caffeine_content LIKE '%caffeine-free%')"
+                elif caffeine == 'Low':
+                    query += " AND t.caffeine_content LIKE '%low%'"
+                elif caffeine == 'Contains Caffeine':
+                    query += " AND t.caffeine_mg_per_cup > 0"
+            
+            if safety != 'All':
+                if safety == 'Generally Safe':
+                    query += " AND (s.risk_level = 'Low' OR s.risk_level IS NULL)"
+                elif safety == 'Use with Caution':
+                    query += " AND s.risk_level = 'Moderate'"
+                elif safety == 'High Risk':
+                    query += " AND (s.risk_level = 'High' OR s.risk_level = 'Very High')"
+            
+            if search_term:
+                query += " AND (t.name LIKE ? OR t.scientific_name LIKE ? OR t.traditional_uses LIKE ?)"
+                params.extend([f'%{search_term}%'] * 3)
+            
+            query += " ORDER BY t.name"
+            
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            
+            for row in rows:
+                display = row['name']
+                # Add safety indicator
+                if row['risk_level']:
+                    if row['risk_level'] in ['High', 'Very High']:
+                        display += " ⚠️"
+                    elif row['risk_level'] == 'Moderate':
+                        display += " ⚡"
+                
+                self.tisanes_listbox.insert(tk.END, display)
+                self.tisane_data.append({
+                    'id': row['id'],
+                    'name': row['name']
+                })
+            
+            if rows:
+                self.tisanes_listbox.select_set(0)
+                self.on_tisane_select(None)
+        
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error loading tisanes: {e}")
+    
+    def on_tisane_search(self, event=None):
+        """Handle tisane search and filtering"""
+        search_term = self.tisane_search_var.get()
+        tradition = self.tisane_tradition_var.get()
+        caffeine = self.tisane_caffeine_var.get()
+        safety = self.tisane_safety_var.get()
+        self.load_tisanes(search_term, tradition, caffeine, safety)
+    
+    def clear_tisane_filters(self):
+        """Clear all tisane filters"""
+        self.tisane_search_var.set('')
+        self.tisane_tradition_var.set('All')
+        self.tisane_caffeine_var.set('All')
+        self.tisane_safety_var.set('All')
+        self.load_tisanes()
+    
+    def on_tisane_select(self, event):
+        """Handle tisane selection"""
+        selection = self.tisanes_listbox.curselection()
+        if not selection:
+            return
+        
+        index = selection[0]
+        if index < len(self.tisane_data):
+            tisane_id = self.tisane_data[index]['id']
+            
+            try:
+                cursor = self.tisane_conn.cursor()
+                cursor.execute("SELECT * FROM tisanes WHERE id = ?", (tisane_id,))
+                tisane = cursor.fetchone()
+                
+                if tisane:
+                    self.display_tisane_details(tisane, tisane_id)
+            
+            except sqlite3.Error as e:
+                messagebox.showerror("Database Error", f"Error: {e}")
+    
+    def display_tisane_details(self, tisane, tisane_id):
+        """Display tisane details with safety information"""
+        self.tisane_details_text.delete('1.0', tk.END)
+        
+        # Title
+        self.tisane_details_text.insert(tk.END, f"{tisane['name']}\n", 'title')
+        self.tisane_details_text.insert(tk.END, f"{tisane['scientific_name']}\n", 'header')
+        self.tisane_details_text.insert(tk.END, f"{tisane['plant_family']}\n\n", 'value')
+        
+        # SAFETY WARNING - Display prominently first
+        try:
+            cursor = self.tisane_conn.cursor()
+            cursor.execute("SELECT * FROM safety_info WHERE tisane_id = ?", (tisane_id,))
+            safety = cursor.fetchone()
+            
+            if safety and safety['risk_level']:
+                self.tisane_details_text.insert(tk.END, "⚠️ SAFETY INFORMATION\n", 'header')
+                
+                risk_level = safety['risk_level']
+                if risk_level in ['High', 'Very High']:
+                    self.tisane_details_text.insert(tk.END, f"Risk Level: {risk_level}\n", 'warning')
+                elif risk_level == 'Moderate':
+                    self.tisane_details_text.insert(tk.END, f"Risk Level: {risk_level}\n", 'caution')
+                else:
+                    self.tisane_details_text.insert(tk.END, f"Risk Level: {risk_level}\n", 'safe')
+                
+                if safety['pregnancy_safety'] and 'AVOID' in safety['pregnancy_safety'].upper():
+                    self.tisane_details_text.insert(tk.END, f"⚠️ Pregnancy: {safety['pregnancy_safety']}\n", 'warning')
+                elif safety['pregnancy_safety']:
+                    self.tisane_details_text.insert(tk.END, f"Pregnancy: {safety['pregnancy_safety']}\n", 'value')
+                
+                if safety['contraindications']:
+                    self.tisane_details_text.insert(tk.END, f"Contraindications: {safety['contraindications']}\n", 'warning')
+                
+                if safety['drug_interactions']:
+                    self.tisane_details_text.insert(tk.END, f"Drug Interactions: {safety['drug_interactions']}\n", 'caution')
+                
+                if safety['max_daily_dosage']:
+                    self.tisane_details_text.insert(tk.END, f"Max Daily Dosage: {safety['max_daily_dosage']}\n", 'value')
+                
+                self.tisane_details_text.insert(tk.END, "\n")
+        except:
+            pass
+        
+        # Tradition
+        self.tisane_details_text.insert(tk.END, "🌍 Tradition & Origin\n", 'header')
+        self.tisane_details_text.insert(tk.END, f"Tradition: {tisane['tradition']}\n", 'value')
+        self.tisane_details_text.insert(tk.END, f"Origin: {tisane['origin_region']}\n", 'value')
+        if tisane['cultivation_countries']:
+            self.tisane_details_text.insert(tk.END, f"Cultivation: {tisane['cultivation_countries']}\n", 'value')
+        self.tisane_details_text.insert(tk.END, "\n")
+        
+        # Plant part and preparation
+        self.tisane_details_text.insert(tk.END, "🌿 Plant Information\n", 'header')
+        self.tisane_details_text.insert(tk.END, f"Part Used: {tisane['plant_part_used']}\n", 'value')
+        self.tisane_details_text.insert(tk.END, "\n")
+        
+        # Traditional uses
+        if tisane['traditional_uses']:
+            self.tisane_details_text.insert(tk.END, "📜 Traditional Uses\n", 'header')
+            self.tisane_details_text.insert(tk.END, f"{tisane['traditional_uses']}\n\n", 'value')
+        
+        # Research benefits
+        if tisane['research_benefits']:
+            self.tisane_details_text.insert(tk.END, "🔬 Research-Backed Benefits\n", 'header')
+            self.tisane_details_text.insert(tk.END, f"{tisane['research_benefits']}\n\n", 'value')
+        
+        # Key compounds
+        if tisane['key_compounds']:
+            self.tisane_details_text.insert(tk.END, "⚗️ Active Compounds\n", 'header')
+            self.tisane_details_text.insert(tk.END, f"{tisane['key_compounds']}\n\n", 'value')
+        
+        # Caffeine
+        self.tisane_details_text.insert(tk.END, "☕ Caffeine Content\n", 'header')
+        caffeine_text = tisane['caffeine_content']
+        if tisane['caffeine_mg_per_cup'] and tisane['caffeine_mg_per_cup'] > 0:
+            caffeine_text += f" (~{tisane['caffeine_mg_per_cup']}mg per cup)"
+        self.tisane_details_text.insert(tk.END, f"{caffeine_text}\n\n", 'value')
+        
+        # Flavor profile
+        self.tisane_details_text.insert(tk.END, "👅 Flavor & Appearance\n", 'header')
+        self.tisane_details_text.insert(tk.END, f"Flavor: {tisane['flavor_profile']}\n", 'value')
+        if tisane['aroma']:
+            self.tisane_details_text.insert(tk.END, f"Aroma: {tisane['aroma']}\n", 'value')
+        if tisane['appearance_dry']:
+            self.tisane_details_text.insert(tk.END, f"Dry Appearance: {tisane['appearance_dry']}\n", 'value')
+        if tisane['appearance_brew']:
+            self.tisane_details_text.insert(tk.END, f"Brewed Appearance: {tisane['appearance_brew']}\n", 'value')
+        self.tisane_details_text.insert(tk.END, "\n")
+        
+        # Brewing instructions
+        self.tisane_details_text.insert(tk.END, "🫖 Brewing Instructions\n", 'header')
+        if tisane['brew_temp_f']:
+            self.tisane_details_text.insert(tk.END, f"Temperature: {tisane['brew_temp_f']}°F / {tisane['brew_temp_c']}°C\n", 'value')
+        if tisane['steep_time']:
+            self.tisane_details_text.insert(tk.END, f"Steep Time: {tisane['steep_time']}\n", 'value')
+        if tisane['tea_water_ratio']:
+            self.tisane_details_text.insert(tk.END, f"Ratio: {tisane['tea_water_ratio']}\n", 'value')
+        self.tisane_details_text.insert(tk.END, "\n")
+        
+        # TCM properties
+        if tisane['tcm_properties_json']:
+            try:
+                import json as json_lib
+                tcm_props = json_lib.loads(tisane['tcm_properties_json'])
+                self.tisane_details_text.insert(tk.END, "☯️ TCM Properties\n", 'header')
+                for key, value in tcm_props.items():
+                    self.tisane_details_text.insert(tk.END, f"{key.title()}: {value}\n", 'value')
+                self.tisane_details_text.insert(tk.END, "\n")
+            except:
+                pass
+        
+        # Ayurvedic properties
+        if tisane['ayurvedic_properties_json']:
+            try:
+                import json as json_lib
+                ayur_props = json_lib.loads(tisane['ayurvedic_properties_json'])
+                self.tisane_details_text.insert(tk.END, "🕉️ Ayurvedic Properties\n", 'header')
+                for key, value in ayur_props.items():
+                    self.tisane_details_text.insert(tk.END, f"{key.title()}: {value}\n", 'value')
+                self.tisane_details_text.insert(tk.END, "\n")
+            except:
+                pass
+        
+        # Cultural significance
+        if tisane['cultural_significance']:
+            self.tisane_details_text.insert(tk.END, "🎭 Cultural Significance\n", 'header')
+            self.tisane_details_text.insert(tk.END, f"{tisane['cultural_significance']}\n\n", 'value')
+        
+        # Price and availability
+        self.tisane_details_text.insert(tk.END, "💰 Availability\n", 'header')
+        self.tisane_details_text.insert(tk.END, f"Price Range: {tisane['price_range']}\n", 'value')
+        self.tisane_details_text.insert(tk.END, f"Availability: {tisane['availability']}\n", 'value')
+    
+    def show_tisane_manufacturers(self):
+        """Show tisane manufacturers in a popup window"""
+        popup = tk.Toplevel(self.root)
+        popup.title("Tisane Manufacturers")
+        popup.geometry("800x600")
+        popup.transient(self.root)
+        
+        ttk.Label(popup, text="Tisane & Herbal Tea Manufacturers",
+                 font=('Arial', 14, 'bold')).pack(pady=10)
+        
+        # Main frame
+        main_frame = ttk.Frame(popup)
+        main_frame.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        # Left: Manufacturers list
+        list_frame = ttk.Frame(main_frame)
+        list_frame.pack(side='left', fill='both', expand=True, padx=(0, 5))
+        
+        list_scroll = ttk.Frame(list_frame)
+        list_scroll.pack(fill='both', expand=True)
+        
+        mfr_listbox = tk.Listbox(list_scroll, font=('Arial', 10))
+        mfr_scrollbar = ttk.Scrollbar(list_scroll, orient='vertical', command=mfr_listbox.yview)
+        mfr_listbox.configure(yscrollcommand=mfr_scrollbar.set)
+        
+        mfr_listbox.pack(side='left', fill='both', expand=True)
+        mfr_scrollbar.pack(side='right', fill='y')
+        
+        # Right: Details
+        details_frame = ttk.Frame(main_frame)
+        details_frame.pack(side='right', fill='both', expand=True)
+        
+        details_text = scrolledtext.ScrolledText(details_frame, wrap=tk.WORD, font=('Arial', 10))
+        details_text.pack(fill='both', expand=True)
+        
+        details_text.tag_configure('company', font=('Arial', 14, 'bold'), foreground='#2d5016')
+        details_text.tag_configure('header', font=('Arial', 11, 'bold'))
+        details_text.tag_configure('value', font=('Arial', 10))
+        
+        # Load manufacturers
+        try:
+            cursor = self.tisane_conn.cursor()
+            cursor.execute("SELECT * FROM manufacturers ORDER BY company_name")
+            manufacturers = cursor.fetchall()
+            
+            mfr_data = []
+            for mfr in manufacturers:
+                display = f"{mfr['company_name']} ({mfr['headquarters_country']})"
+                mfr_listbox.insert(tk.END, display)
+                mfr_data.append(mfr)
+            
+            def on_mfr_select(event):
+                selection = mfr_listbox.curselection()
+                if not selection:
+                    return
+                
+                idx = selection[0]
+                mfr = mfr_data[idx]
+                
+                details_text.delete('1.0', tk.END)
+                details_text.insert(tk.END, f"{mfr['company_name']}\n", 'company')
+                details_text.insert(tk.END, f"{mfr['market_segment'].title()} Brand\n\n", 'header')
+                
+                details_text.insert(tk.END, "🏢 Company Information\n", 'header')
+                if mfr['founded_year']:
+                    details_text.insert(tk.END, f"Founded: {mfr['founded_year']}\n", 'value')
+                if mfr['parent_company']:
+                    details_text.insert(tk.END, f"Parent Company: {mfr['parent_company']}\n", 'value')
+                details_text.insert(tk.END, f"Headquarters: {mfr['headquarters_city']}, {mfr['headquarters_country']}\n", 'value')
+                if mfr['website']:
+                    details_text.insert(tk.END, f"Website: {mfr['website']}\n", 'value')
+                details_text.insert(tk.END, "\n")
+                
+                if mfr['certifications']:
+                    details_text.insert(tk.END, "✓ Certifications\n", 'header')
+                    details_text.insert(tk.END, f"{mfr['certifications']}\n\n", 'value')
+                
+                if mfr['notable_products']:
+                    details_text.insert(tk.END, "🌿 Notable Products\n", 'header')
+                    details_text.insert(tk.END, f"{mfr['notable_products']}\n\n", 'value')
+                
+                if mfr['description']:
+                    details_text.insert(tk.END, "📝 Description\n", 'header')
+                    details_text.insert(tk.END, f"{mfr['description']}\n", 'value')
+            
+            mfr_listbox.bind('<<ListboxSelect>>', on_mfr_select)
+            
+            if manufacturers:
+                mfr_listbox.select_set(0)
+                on_mfr_select(None)
+        
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Error loading manufacturers: {e}")
+        
+        ttk.Button(popup, text="Close", command=popup.destroy).pack(pady=10)
 
     # ==============================================
     # BREWING TIMER FUNCTIONS
