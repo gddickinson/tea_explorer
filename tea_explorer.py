@@ -1,9 +1,12 @@
 """
-Tea Collection Explorer - Enhanced Edition v2.0
+Tea Collection Explorer - Enhanced Edition v2.1
 A comprehensive tea database browser with advanced features
 
 NEW FEATURES:
+- Tea Blends browser (26 popular blends)
 - Cultivars browser (26 varieties)
+- Tea Brands & Manufacturers (28+ companies, 117+ products)
+- Tisanes & Herbal Teas (45+ varieties with safety info)
 - Brewing timer with alerts
 - Tea journal with ratings
 - Comparison tool (up to 3 teas)
@@ -70,6 +73,7 @@ class TeaExplorerApp:
         self.create_database_tab()
         self.create_cultivars_tab()
         self.create_brands_tab()  # NEW: Tea Brands/Manufacturers tab
+        self.create_blends_tab()  # NEW: Tea Blends/Flavours tab
         self.create_tisanes_tab()  # NEW: Tisanes/Herbal Teas tab
         self.create_brewing_tab()
         self.create_journal_tab()
@@ -148,10 +152,12 @@ class TeaExplorerApp:
             company_count = cursor.fetchone()[0]
             cursor.execute("SELECT COUNT(*) FROM products")
             product_count = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM blends")
+            blend_count = cursor.fetchone()[0]
 
             journal_count = len(self.journal_entries)
 
-            status_text = f"Database: {tea_count} teas | {cultivar_count} cultivars | {region_count} regions | {company_count} brands | {product_count} products | Journal: {journal_count} entries"
+            status_text = f"Database: {tea_count} teas | {cultivar_count} cultivars | {blend_count} blends | {region_count} regions | {company_count} brands | {product_count} products | Journal: {journal_count} entries"
             self.status_bar.config(text=status_text)
         except:
             self.status_bar.config(text="Ready")
@@ -475,6 +481,126 @@ class TeaExplorerApp:
         
         # Load companies
         self.load_companies()
+
+    def create_blends_tab(self):
+        """Create tea blends/flavours browser tab"""
+        blends_frame = ttk.Frame(self.notebook)
+        self.notebook.add(blends_frame, text="🫖 Tea Blends")
+        
+        # Header with search
+        header_frame = ttk.Frame(blends_frame)
+        header_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Label(header_frame, text="Tea Blends & Flavoured Teas Explorer",
+                 style='Title.TLabel').pack(side='left')
+        
+        # Search and filters
+        search_filter_frame = ttk.Frame(blends_frame)
+        search_filter_frame.pack(fill='x', padx=10, pady=(0, 10))
+        
+        # Row 1: Basic search
+        row1 = ttk.Frame(search_filter_frame)
+        row1.pack(fill='x', pady=(0, 5))
+        
+        ttk.Label(row1, text="Search:").pack(side='left', padx=5)
+        self.blend_search_var = tk.StringVar()
+        blend_search = ttk.Entry(row1, textvariable=self.blend_search_var, width=30)
+        blend_search.pack(side='left', padx=5)
+        blend_search.bind('<KeyRelease>', self.on_blend_search)
+        
+        ttk.Label(row1, text="Category:").pack(side='left', padx=(20, 5))
+        self.blend_category_var = tk.StringVar(value="All")
+        category_combo = ttk.Combobox(row1, textvariable=self.blend_category_var,
+                                      values=["All", "Flavoured Black Tea", "Traditional Black Blend", 
+                                             "Spiced Black Tea", "Flavoured Green Tea", "Japanese Green Blend",
+                                             "Flavoured Black/White Tea", "Flavoured Black/Green Tea",
+                                             "Scented Green Tea", "Flavoured Spiced Tea", "Wellness Blend",
+                                             "Wellness Herbal Blend", "Smoky Black Blend"],
+                                      state='readonly', width=25)
+        category_combo.pack(side='left', padx=5)
+        category_combo.bind('<<ComboboxSelected>>', self.on_blend_search)
+        
+        ttk.Button(row1, text="Clear", command=self.clear_blend_filters).pack(side='left', padx=5)
+        
+        # Row 2: Advanced filters
+        row2 = ttk.Frame(search_filter_frame)
+        row2.pack(fill='x')
+        
+        ttk.Label(row2, text="Caffeine:").pack(side='left', padx=5)
+        self.blend_caffeine_var = tk.StringVar(value="All")
+        caffeine_combo = ttk.Combobox(row2, textvariable=self.blend_caffeine_var,
+                                     values=["All", "None", "Low", "Low-Medium", "Medium", "Medium-High", 
+                                            "High", "Very High"],
+                                     state='readonly', width=15)
+        caffeine_combo.pack(side='left', padx=5)
+        caffeine_combo.bind('<<ComboboxSelected>>', self.on_blend_search)
+        
+        ttk.Label(row2, text="Origin:").pack(side='left', padx=(20, 5))
+        self.blend_origin_var = tk.StringVar(value="All")
+        origin_combo = ttk.Combobox(row2, textvariable=self.blend_origin_var,
+                                   values=["All", "England", "Ireland", "Scotland", "India", "Japan", 
+                                          "Morocco", "Thailand", "Modern blend", "Modern creation",
+                                          "Modern wellness blend", "Modern tropical blend",
+                                          "Modern seasonal blend", "Modern fusion blend",
+                                          "Modern dessert blend", "Western adaptation"],
+                                   state='readonly', width=20)
+        origin_combo.pack(side='left', padx=5)
+        origin_combo.bind('<<ComboboxSelected>>', self.on_blend_search)
+        
+        # Main content frame
+        content_frame = ttk.Frame(blends_frame)
+        content_frame.pack(fill='both', expand=True, padx=10, pady=5)
+        
+        # Left: Blends list
+        list_frame = ttk.Frame(content_frame)
+        list_frame.pack(side='left', fill='both', expand=True, padx=(0, 5))
+        
+        ttk.Label(list_frame, text="Tea Blends", style='Header.TLabel').pack(anchor='w', pady=5)
+        
+        list_scroll = ttk.Frame(list_frame)
+        list_scroll.pack(fill='both', expand=True)
+        
+        self.blends_listbox = tk.Listbox(list_scroll, font=('Arial', 10))
+        blends_scrollbar = ttk.Scrollbar(list_scroll, orient='vertical',
+                                        command=self.blends_listbox.yview)
+        self.blends_listbox.configure(yscrollcommand=blends_scrollbar.set)
+        
+        self.blends_listbox.pack(side='left', fill='both', expand=True)
+        blends_scrollbar.pack(side='right', fill='y')
+        
+        self.blends_listbox.bind('<<ListboxSelect>>', self.on_blend_select)
+        self.blend_data = []
+        
+        # Right: Blend details
+        details_frame = ttk.Frame(content_frame)
+        details_frame.pack(side='right', fill='both', expand=True)
+        
+        ttk.Label(details_frame, text="Blend Information", style='Header.TLabel').pack(anchor='w', pady=5)
+        
+        self.blend_details_text = scrolledtext.ScrolledText(details_frame, wrap=tk.WORD,
+                                                           font=('Arial', 10))
+        self.blend_details_text.pack(fill='both', expand=True)
+        
+        # Configure tags for formatting
+        self.blend_details_text.tag_configure('blend_name', font=('Arial', 18, 'bold'), foreground='#2c5f2d')
+        self.blend_details_text.tag_configure('category', font=('Arial', 12, 'italic'), foreground='#666666')
+        self.blend_details_text.tag_configure('header', font=('Arial', 11, 'bold'), foreground='#4a4a4a')
+        self.blend_details_text.tag_configure('value', font=('Arial', 10))
+        self.blend_details_text.tag_configure('description', font=('Arial', 10, 'italic'), foreground='#555555')
+        
+        # Action buttons frame
+        button_frame = ttk.Frame(blends_frame)
+        button_frame.pack(fill='x', padx=10, pady=10)
+        
+        ttk.Button(button_frame, text="🫖 Start Brewing Timer",
+                  command=self.start_blend_timer).pack(side='left', padx=5)
+        ttk.Button(button_frame, text="📝 Add to Journal",
+                  command=self.add_blend_to_journal).pack(side='left', padx=5)
+        ttk.Button(button_frame, text="📤 Export Blends",
+                  command=self.export_blends).pack(side='left', padx=5)
+        
+        # Load blends
+        self.load_blends()
 
     def create_tisanes_tab(self):
         """Create tisanes/herbal teas browser tab"""
@@ -1256,6 +1382,314 @@ class TeaExplorerApp:
             details_text.config(state='disabled')
             
             ttk.Button(popup, text="Close", command=popup.destroy).pack(pady=10)
+
+    # ==============================================
+    # BLENDS TAB FUNCTIONS
+    # ==============================================
+
+    def load_blends(self, search_term='', category='All', caffeine='All', origin='All'):
+        """Load blends list with filters"""
+        self.blends_listbox.delete(0, tk.END)
+        self.blend_data = []
+        
+        try:
+            cursor = self.conn.cursor()
+            
+            query = """
+                SELECT * FROM blends
+                WHERE 1=1
+            """
+            params = []
+            
+            if search_term:
+                query += """ AND (
+                    blend_name LIKE ? OR
+                    ingredients LIKE ? OR
+                    flavor_profile LIKE ? OR
+                    popular_brands LIKE ?
+                )"""
+                search_pattern = f"%{search_term}%"
+                params.extend([search_pattern, search_pattern, search_pattern, search_pattern])
+            
+            if category != 'All':
+                query += " AND category = ?"
+                params.append(category)
+            
+            if caffeine != 'All':
+                query += " AND caffeine_level LIKE ?"
+                params.append(f"%{caffeine}%")
+            
+            if origin != 'All':
+                query += " AND origin_region LIKE ?"
+                params.append(f"%{origin}%")
+            
+            query += " ORDER BY blend_name"
+            
+            cursor.execute(query, params)
+            blends = cursor.fetchall()
+            
+            for blend in blends:
+                self.blend_data.append(dict(blend))
+                display_name = f"{blend['blend_name']} ({blend['category']})"
+                self.blends_listbox.insert(tk.END, display_name)
+            
+            # Update status (if status bar exists)
+            if hasattr(self, 'status_bar'):
+                self.status_bar.config(text=f"Loaded {len(blends)} blends")
+            
+        except sqlite3.Error as e:
+            messagebox.showerror("Database Error", f"Could not load blends: {e}")
+
+    def on_blend_search(self, event=None):
+        """Handle blend search and filter changes"""
+        search_term = self.blend_search_var.get()
+        category = self.blend_category_var.get()
+        caffeine = self.blend_caffeine_var.get()
+        origin = self.blend_origin_var.get()
+        self.load_blends(search_term, category, caffeine, origin)
+
+    def clear_blend_filters(self):
+        """Clear all blend filters"""
+        self.blend_search_var.set('')
+        self.blend_category_var.set('All')
+        self.blend_caffeine_var.set('All')
+        self.blend_origin_var.set('All')
+        self.load_blends()
+
+    def on_blend_select(self, event):
+        """Handle blend selection"""
+        selection = self.blends_listbox.curselection()
+        if not selection:
+            return
+        
+        index = selection[0]
+        blend = self.blend_data[index]
+        
+        # Clear previous details
+        self.blend_details_text.config(state='normal')
+        self.blend_details_text.delete('1.0', tk.END)
+        
+        # Display blend information
+        self.blend_details_text.insert(tk.END, f"{blend['blend_name']}\n", 'blend_name')
+        self.blend_details_text.insert(tk.END, f"{blend['category']}\n\n", 'category')
+        
+        # Description
+        if blend['description']:
+            self.blend_details_text.insert(tk.END, f"{blend['description']}\n\n", 'description')
+        
+        # Base Tea
+        if blend['base_tea']:
+            self.blend_details_text.insert(tk.END, "Base Tea\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['base_tea']}\n\n", 'value')
+        
+        # Ingredients
+        self.blend_details_text.insert(tk.END, "Ingredients\n", 'header')
+        self.blend_details_text.insert(tk.END, f"{blend['ingredients']}\n\n", 'value')
+        
+        # Flavor & Aroma
+        self.blend_details_text.insert(tk.END, "Flavor Profile\n", 'header')
+        self.blend_details_text.insert(tk.END, f"{blend['flavor_profile']}\n\n", 'value')
+        
+        if blend['aroma']:
+            self.blend_details_text.insert(tk.END, "Aroma\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['aroma']}\n\n", 'value')
+        
+        # Brewing Instructions
+        self.blend_details_text.insert(tk.END, "Brewing Instructions\n", 'header')
+        if blend['brew_temp_c']:
+            self.blend_details_text.insert(tk.END, 
+                f"Temperature: {blend['brew_temp_c']}°C ({blend['brew_temp_f']}°F)\n", 'value')
+        if blend['steep_time']:
+            self.blend_details_text.insert(tk.END, f"Steep Time: {blend['steep_time']}\n", 'value')
+        self.blend_details_text.insert(tk.END, "\n")
+        
+        # Caffeine
+        if blend['caffeine_level']:
+            self.blend_details_text.insert(tk.END, "Caffeine Level\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['caffeine_level']}\n\n", 'value')
+        
+        # Health Benefits
+        if blend['health_benefits']:
+            self.blend_details_text.insert(tk.END, "Health Benefits\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['health_benefits']}\n\n", 'value')
+        
+        # Serving Suggestions
+        if blend['serving_suggestions']:
+            self.blend_details_text.insert(tk.END, "Serving Suggestions\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['serving_suggestions']}\n\n", 'value')
+        
+        # Origin & History
+        if blend['origin_region']:
+            self.blend_details_text.insert(tk.END, "Origin\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['origin_region']}\n\n", 'value')
+        
+        if blend['history']:
+            self.blend_details_text.insert(tk.END, "History\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['history']}\n\n", 'value')
+        
+        # Popular Brands
+        if blend['popular_brands']:
+            self.blend_details_text.insert(tk.END, "Popular Brands\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['popular_brands']}\n\n", 'value')
+        
+        # Price Range
+        if blend['price_range']:
+            self.blend_details_text.insert(tk.END, "Price Range\n", 'header')
+            self.blend_details_text.insert(tk.END, f"{blend['price_range']}\n", 'value')
+        
+        self.blend_details_text.config(state='disabled')
+        
+        # Store current blend for timer and journal
+        self.current_blend = blend
+
+    def start_blend_timer(self):
+        """Start brewing timer for selected blend"""
+        if hasattr(self, 'current_blend') and self.current_blend:
+            # Switch to brewing tab and set up timer
+            # Tab indices: 0=Tea, 1=Cultivars, 2=Brands, 3=Blends, 4=Tisanes, 5=Brewing
+            self.notebook.select(5)  # Brewing tab index
+            self.timer_tea_var.set(self.current_blend['blend_name'])
+            
+            # Extract time from steep_time (e.g., "3-5 minutes" -> use middle value)
+            steep_time = self.current_blend['steep_time']
+            if steep_time and 'minute' in steep_time.lower():
+                import re
+                times = re.findall(r'\d+', steep_time)
+                if times:
+                    if len(times) == 1:
+                        minutes = int(times[0])
+                    else:
+                        # Use middle of range
+                        minutes = (int(times[0]) + int(times[1])) // 2
+                    self.custom_minutes.set(str(minutes))
+                    self.custom_seconds.set("0")
+                    # Apply the custom time
+                    self.set_custom_time()
+        else:
+            messagebox.showinfo("No Blend Selected", "Please select a blend first")
+
+    def add_blend_to_journal(self):
+        """Add selected blend to journal"""
+        if hasattr(self, 'current_blend') and self.current_blend:
+            # Store blend name for journal entry
+            self.current_tea = self.current_blend['blend_name']
+            
+            # Switch to journal tab
+            # Tab indices: 0=Tea, 1=Cultivars, 2=Brands, 3=Blends, 4=Tisanes, 5=Brewing, 6=Journal
+            self.notebook.select(6)
+            
+            # Open new entry dialog with pre-filled data
+            self.new_journal_entry_with_blend(self.current_blend)
+        else:
+            messagebox.showinfo("No Blend Selected", "Please select a blend first")
+    
+    def new_journal_entry_with_blend(self, blend):
+        """Create new journal entry pre-filled with blend info"""
+        dialog = tk.Toplevel(self.root)
+        dialog.title("New Journal Entry")
+        dialog.geometry("500x600")
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # Tea selection - pre-filled with blend name
+        ttk.Label(dialog, text="Tea/Blend Name:").pack(anchor='w', padx=10, pady=(10, 0))
+        tea_var = tk.StringVar(value=blend['blend_name'])
+        tea_entry = ttk.Entry(dialog, textvariable=tea_var, width=50)
+        tea_entry.pack(padx=10, pady=5, fill='x')
+
+        # Rating
+        ttk.Label(dialog, text="Rating:").pack(anchor='w', padx=10, pady=(10, 0))
+        rating_var = tk.IntVar(value=3)
+        rating_frame = ttk.Frame(dialog)
+        rating_frame.pack(padx=10, pady=5)
+        for i in range(1, 6):
+            ttk.Radiobutton(rating_frame, text=f"{'⭐' * i}", variable=rating_var,
+                           value=i).pack(side='left', padx=5)
+
+        # Brewing details - pre-filled with blend info
+        ttk.Label(dialog, text="Brewing Details:").pack(anchor='w', padx=10, pady=(10, 0))
+        brewing_text = tk.Text(dialog, height=3, width=50)
+        brewing_text.pack(padx=10, pady=5)
+        
+        brew_info = ""
+        if blend['brew_temp_c']:
+            brew_info += f"Temperature: {blend['brew_temp_c']}°C\n"
+        if blend['steep_time']:
+            brew_info += f"Steep time: {blend['steep_time']}\n"
+        brew_info += "Infusion #: "
+        brewing_text.insert('1.0', brew_info)
+
+        # Notes
+        ttk.Label(dialog, text="Tasting Notes:").pack(anchor='w', padx=10, pady=(10, 0))
+        notes_text = scrolledtext.ScrolledText(dialog, height=10, width=50)
+        notes_text.pack(padx=10, pady=5, fill='both', expand=True)
+
+        # Buttons
+        button_frame = ttk.Frame(dialog)
+        button_frame.pack(pady=10)
+
+        def save_entry():
+            tea_name = tea_var.get()
+            if not tea_name:
+                messagebox.showerror("Error", "Please enter a tea/blend name")
+                return
+
+            entry = {
+                'tea_name': tea_name,
+                'date': datetime.now().strftime('%Y-%m-%d %H:%M'),
+                'rating': rating_var.get(),
+                'brewing': brewing_text.get('1.0', tk.END).strip(),
+                'notes': notes_text.get('1.0', tk.END).strip()
+            }
+
+            self.journal_entries.append(entry)
+            self.save_journal()
+            self.load_journal_list()
+            dialog.destroy()
+
+        ttk.Button(button_frame, text="Save", command=save_entry,
+                  style='Action.TButton').pack(side='left', padx=5)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side='left', padx=5)
+
+    def export_blends(self):
+        """Export blends to CSV"""
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+            initialfile="tea_blends.csv"
+        )
+        
+        if filename:
+            try:
+                cursor = self.conn.cursor()
+                cursor.execute("SELECT * FROM blends ORDER BY blend_name")
+                blends = cursor.fetchall()
+                
+                with open(filename, 'w', newline='', encoding='utf-8') as f:
+                    writer = csv.writer(f)
+                    # Write headers
+                    writer.writerow([
+                        'Blend Name', 'Category', 'Base Tea', 'Ingredients', 'Flavor Profile',
+                        'Aroma', 'Brew Temp (°C)', 'Brew Temp (°F)', 'Steep Time', 'Caffeine Level',
+                        'Health Benefits', 'Origin', 'History', 'Price Range', 'Popular Brands',
+                        'Description', 'Serving Suggestions'
+                    ])
+                    
+                    # Write data
+                    for blend in blends:
+                        writer.writerow([
+                            blend['blend_name'], blend['category'], blend['base_tea'],
+                            blend['ingredients'], blend['flavor_profile'], blend['aroma'],
+                            blend['brew_temp_c'], blend['brew_temp_f'], blend['steep_time'],
+                            blend['caffeine_level'], blend['health_benefits'], blend['origin_region'],
+                            blend['history'], blend['price_range'], blend['popular_brands'],
+                            blend['description'], blend['serving_suggestions']
+                        ])
+                
+                messagebox.showinfo("Export Successful", f"Blends exported to {filename}")
+                
+            except Exception as e:
+                messagebox.showerror("Export Error", f"Could not export blends: {e}")
 
     # ==============================================
     # TISANES TAB FUNCTIONS
@@ -2673,11 +3107,14 @@ class TeaExplorerApp:
     def show_about(self):
         """Show about dialog"""
         about_text = """Tea Collection Explorer - Enhanced Edition
-Version 2.0
+Version 2.1
 
 Features:
 • 49 authentic tea varieties
 • 26 tea plant cultivars
+• 26 popular tea blends & flavours
+• 28+ tea brands worldwide
+• 45+ herbal tisanes
 • Brewing timer with alerts
 • Tea tasting journal
 • Comparison tool
