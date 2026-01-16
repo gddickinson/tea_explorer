@@ -1,0 +1,112 @@
+2026-01-16 09:22:28,582 - tea_explorer - INFO - Logging initialized successfully
+2026-01-16 09:22:28,582 - tea_explorer - INFO - Log level: INFO
+2026-01-16 09:22:28,582 - tea_explorer - INFO - Log file: /Users/george/Documents/python_projects/tea_explorer_v3/logs/tea_explorer.log
+2026-01-16 09:22:28,583 - tea_explorer.CacheManager - INFO - CacheManager initialized
+2026-01-16 09:22:28,585 - tea_explorer.PerformanceMonitor - INFO - PerformanceMonitor initialized
+2026-01-16 09:22:29,511 - tea_explorer.__main__ - INFO - Starting Tea Collection Explorer - Enhanced Edition
+2026-01-16 09:22:29,906 - tea_explorer.__main__ - INFO - Initializing databases
+2026-01-16 09:22:29,906 - tea_explorer.DatabaseConnection - INFO - Database manager initialized for: tea_collection.db
+2026-01-16 09:22:29,906 - tea_explorer.__main__ - INFO - Creating repositories
+2026-01-16 09:22:29,907 - tea_explorer.TeaRepository - INFO - TeaRepository initialized
+2026-01-16 09:22:29,907 - tea_explorer.BlendRepository - INFO - BlendRepository initialized
+2026-01-16 09:22:29,907 - tea_explorer.JournalRepository - INFO - JournalRepository initialized with path: tea_journal.json
+2026-01-16 09:22:29,907 - tea_explorer.CultivarRepository - INFO - CultivarRepository initialized
+2026-01-16 09:22:29,907 - tea_explorer.CompanyRepository - INFO - CompanyRepository initialized
+2026-01-16 09:22:29,907 - tea_explorer.ProductRepository - INFO - ProductRepository initialized
+2026-01-16 09:22:29,907 - tea_explorer.RegionRepository - INFO - RegionRepository initialized
+2026-01-16 09:22:29,907 - tea_explorer.TisaneRepository - INFO - TisaneRepository initialized with tisane_collection.db
+2026-01-16 09:22:29,907 - tea_explorer.__main__ - INFO - Creating controllers
+2026-01-16 09:22:29,907 - tea_explorer.TeaController - INFO - TeaController initialized
+2026-01-16 09:22:29,907 - tea_explorer.BlendController - INFO - BlendController initialized
+2026-01-16 09:22:29,908 - tea_explorer.JournalController - INFO - JournalController initialized
+2026-01-16 09:22:29,908 - tea_explorer.CultivarController - INFO - CultivarController initialized
+2026-01-16 09:22:29,908 - tea_explorer.CompanyController - INFO - CompanyController initialized
+2026-01-16 09:22:29,908 - tea_explorer.TisaneController - INFO - TisaneController initialized
+2026-01-16 09:22:29,974 - tea_explorer.JournalRepository - INFO - Loaded 1 journal entries
+2026-01-16 09:22:30,007 - tea_explorer.__main__ - INFO - Application initialized successfully
+2026-01-16 09:22:30,007 - tea_explorer.__main__ - INFO - Application started successfully
+2026-01-16 09:23:58,347 - tea_explorer.__main__ - INFO - Application closed
+2026-01-16 10:52:36,937 - tea_explorer - INFO - Logging initialized successfully
+2026-01-16 10:52:36,937 - tea_explorer - INFO - Log level: INFO
+2026-01-16 10:52:36,937 - tea_explorer - INFO - Log file: /Users/george/Documents/python_projects/tea_explorer_v3/logs/tea_explorer.log
+2026-01-16 10:52:36,937 - tea_explorer.CacheManager - INFO - CacheManager initialized
+2026-01-16 10:52:36,938 - tea_explorer.PerformanceMonitor - INFO - PerformanceMonitor initialized
+2026-01-16 10:52:37,558 - tea_explorer.__main__ - INFO - Starting Tea Collection Explorer - Enhanced Edition
+2026-01-16 10:52:37,779 - tea_explorer.__main__ - INFO - Initializing databases
+2026-01-16 10:52:37,780 - tea_explorer.DatabaseConnection - INFO - Database manager initialized for: tea_collection.db
+2026-01-16 10:52:37,780 - tea_explorer.__main__ - INFO - Creating repositories
+2026-01-16 10:52:37,781 - tea_explorer.TeaRepository - INFO - TeaRepository initialized
+2026-01-16 10:52:37,781 - tea_explorer.BlendRepository - INFO - BlendRepository initialized
+2026-01-16 10:52:37,781 - tea_explorer.JournalRepository - INFO - JournalRepository initialized with path: tea_journal.json
+2026-01-16 10:52:37,781 - tea_explorer.CultivarRepository - INFO - CultivarRepository initialized
+2026-01-16 10:52:37,781 - tea_explorer.CompanyRepository - INFO - CompanyRepository initialized
+2026-01-16 10:52:37,781 - tea_explorer.ProductRepository - INFO - ProductRepository initialized
+2026-01-16 10:52:37,781 - tea_explorer.RegionRepository - INFO - RegionRepository initialized
+2026-01-16 10:52:37,781 - tea_explorer.TisaneRepository - INFO - TisaneRepository initialized with tisane_collection.db
+2026-01-16 10:52:37,781 - tea_explorer.__main__ - INFO - Creating controllers
+2026-01-16 10:52:37,781 - tea_explorer.TeaController - INFO - TeaController initialized
+2026-01-16 10:52:37,781 - tea_explorer.BlendController - INFO - BlendController initialized
+2026-01-16 10:52:37,781 - tea_explorer.JournalController - INFO - JournalController initialized
+2026-01-16 10:52:37,781 - tea_explorer.CultivarController - INFO - CultivarController initialized
+2026-01-16 10:52:37,781 - tea_explorer.CompanyController - INFO - CompanyController initialized
+2026-01-16 10:52:37,781 - tea_explorer.TisaneController - INFO - TisaneController initialized
+2026-01-16 10:52:37,849 - tea_explorer.JournalRepository - INFO - Loaded 1 journal entries
+2026-01-16 10:52:37,881 - tea_explorer.__main__ - INFO - Application initialized successfully
+2026-01-16 10:52:37,881 - tea_explorer.__main__ - INFO - Application started successfully
+2026-01-16 10:55:31,983 - tea_explorer.__main__ - INFO - Application closed
+2026-01-16 10:55:34,928 - tea_explorer - INFO - Logging initialized successfully
+2026-01-16 10:55:34,928 - tea_explorer - INFO - Log level: INFO
+2026-01-16 10:55:34,928 - tea_explorer - INFO - Log file: /Users/george/Documents/python_projects/tea_explorer_v3/logs/tea_explorer.log
+2026-01-16 10:55:34,929 - tea_explorer.CacheManager - INFO - CacheManager initialized
+2026-01-16 10:55:34,929 - tea_explorer.PerformanceMonitor - INFO - PerformanceMonitor initialized
+2026-01-16 10:55:35,517 - tea_explorer.__main__ - INFO - Starting Tea Collection Explorer - Enhanced Edition
+2026-01-16 10:55:35,707 - tea_explorer.__main__ - INFO - Initializing databases
+2026-01-16 10:55:35,707 - tea_explorer.DatabaseConnection - INFO - Database manager initialized for: tea_collection.db
+2026-01-16 10:55:35,707 - tea_explorer.__main__ - INFO - Creating repositories
+2026-01-16 10:55:35,708 - tea_explorer.TeaRepository - INFO - TeaRepository initialized
+2026-01-16 10:55:35,708 - tea_explorer.BlendRepository - INFO - BlendRepository initialized
+2026-01-16 10:55:35,708 - tea_explorer.JournalRepository - INFO - JournalRepository initialized with path: tea_journal.json
+2026-01-16 10:55:35,708 - tea_explorer.CultivarRepository - INFO - CultivarRepository initialized
+2026-01-16 10:55:35,708 - tea_explorer.CompanyRepository - INFO - CompanyRepository initialized
+2026-01-16 10:55:35,708 - tea_explorer.ProductRepository - INFO - ProductRepository initialized
+2026-01-16 10:55:35,708 - tea_explorer.RegionRepository - INFO - RegionRepository initialized
+2026-01-16 10:55:35,709 - tea_explorer.TisaneRepository - INFO - TisaneRepository initialized with tisane_collection.db
+2026-01-16 10:55:35,709 - tea_explorer.__main__ - INFO - Creating controllers
+2026-01-16 10:55:35,709 - tea_explorer.TeaController - INFO - TeaController initialized
+2026-01-16 10:55:35,709 - tea_explorer.BlendController - INFO - BlendController initialized
+2026-01-16 10:55:35,709 - tea_explorer.JournalController - INFO - JournalController initialized
+2026-01-16 10:55:35,709 - tea_explorer.CultivarController - INFO - CultivarController initialized
+2026-01-16 10:55:35,709 - tea_explorer.CompanyController - INFO - CompanyController initialized
+2026-01-16 10:55:35,709 - tea_explorer.TisaneController - INFO - TisaneController initialized
+2026-01-16 10:55:35,774 - tea_explorer.JournalRepository - INFO - Loaded 1 journal entries
+2026-01-16 10:55:35,804 - tea_explorer.__main__ - INFO - Application initialized successfully
+2026-01-16 10:55:35,826 - tea_explorer.__main__ - INFO - Application started successfully
+2026-01-16 10:55:52,992 - tea_explorer.__main__ - INFO - Application closed
+2026-01-16 10:55:56,380 - tea_explorer - INFO - Logging initialized successfully
+2026-01-16 10:55:56,380 - tea_explorer - INFO - Log level: INFO
+2026-01-16 10:55:56,380 - tea_explorer - INFO - Log file: /Users/george/Documents/python_projects/tea_explorer_v3/logs/tea_explorer.log
+2026-01-16 10:55:56,380 - tea_explorer.CacheManager - INFO - CacheManager initialized
+2026-01-16 10:55:56,381 - tea_explorer.PerformanceMonitor - INFO - PerformanceMonitor initialized
+2026-01-16 10:55:57,039 - tea_explorer.__main__ - INFO - Starting Tea Collection Explorer - Enhanced Edition
+2026-01-16 10:55:57,253 - tea_explorer.__main__ - INFO - Initializing databases
+2026-01-16 10:55:57,253 - tea_explorer.DatabaseConnection - INFO - Database manager initialized for: tea_collection.db
+2026-01-16 10:55:57,253 - tea_explorer.__main__ - INFO - Creating repositories
+2026-01-16 10:55:57,254 - tea_explorer.TeaRepository - INFO - TeaRepository initialized
+2026-01-16 10:55:57,254 - tea_explorer.BlendRepository - INFO - BlendRepository initialized
+2026-01-16 10:55:57,254 - tea_explorer.JournalRepository - INFO - JournalRepository initialized with path: tea_journal.json
+2026-01-16 10:55:57,254 - tea_explorer.CultivarRepository - INFO - CultivarRepository initialized
+2026-01-16 10:55:57,254 - tea_explorer.CompanyRepository - INFO - CompanyRepository initialized
+2026-01-16 10:55:57,254 - tea_explorer.ProductRepository - INFO - ProductRepository initialized
+2026-01-16 10:55:57,254 - tea_explorer.RegionRepository - INFO - RegionRepository initialized
+2026-01-16 10:55:57,255 - tea_explorer.TisaneRepository - INFO - TisaneRepository initialized with tisane_collection.db
+2026-01-16 10:55:57,255 - tea_explorer.__main__ - INFO - Creating controllers
+2026-01-16 10:55:57,255 - tea_explorer.TeaController - INFO - TeaController initialized
+2026-01-16 10:55:57,255 - tea_explorer.BlendController - INFO - BlendController initialized
+2026-01-16 10:55:57,255 - tea_explorer.JournalController - INFO - JournalController initialized
+2026-01-16 10:55:57,255 - tea_explorer.CultivarController - INFO - CultivarController initialized
+2026-01-16 10:55:57,255 - tea_explorer.CompanyController - INFO - CompanyController initialized
+2026-01-16 10:55:57,255 - tea_explorer.TisaneController - INFO - TisaneController initialized
+2026-01-16 10:55:57,329 - tea_explorer.JournalRepository - INFO - Loaded 1 journal entries
+2026-01-16 10:55:57,371 - tea_explorer.__main__ - INFO - Application initialized successfully
+2026-01-16 10:55:57,374 - tea_explorer.__main__ - INFO - Application started successfully
+2026-01-16 10:56:58,475 - tea_explorer.__main__ - INFO - Application closed

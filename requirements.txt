@@ -1,0 +1,10 @@
+# Tea Collection Explorer - Phase 2 Requirements
+
+# Phase 1 dependencies
+pytest>=7.4.0
+pytest-cov>=4.1.0
+
+# Future dependencies (for Phase 3+)
+# pandas>=2.0.0        # For data analysis
+# matplotlib>=3.7.0    # For visualizations
+# pillow>=10.0.0       # For image handling
