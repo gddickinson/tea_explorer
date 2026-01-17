@@ -112,7 +112,13 @@ class TeaExplorerEnhanced:
         # Create menu bar
         self.create_menu_bar()
         
-        # Main notebook for tabs
+        # Create status bar widget first (so it exists for update calls)
+        self.status_bar = ttk.Label(self.root, text="", relief=tk.SUNKEN, anchor='w')
+        # Pack it at bottom BEFORE packing notebook
+        self.status_bar.pack(side='bottom', fill='x')
+        
+        # Main notebook for tabs - pack AFTER status bar
+        # This way notebook expands to fill remaining space above status bar
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(fill='both', expand=True, padx=5, pady=5)
         
@@ -130,8 +136,8 @@ class TeaExplorerEnhanced:
         self.create_history_tab()
         self.create_map_tab()
         
-        # Create status bar
-        self.create_status_bar()
+        # Update status bar with initial values
+        self.update_status_bar()
     
     def create_menu_bar(self):
         """Create menu bar"""
@@ -156,12 +162,15 @@ class TeaExplorerEnhanced:
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Help", menu=help_menu)
+        help_menu.add_command(label="Tea Glossary", command=self.show_glossary)
+        help_menu.add_command(label="User Guide", command=self.show_user_guide)
+        help_menu.add_separator()
         help_menu.add_command(label="About", command=self.show_about)
     
     def create_tea_tab(self):
         """Create tea browser tab"""
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text=f"🍵 Teas ({self.tea_controller.get_tea_count()})")
+        self.notebook.add(frame, text="🍵 Teas")
         
         # Paned window
         paned = tk.PanedWindow(frame, orient='horizontal')
@@ -226,7 +235,7 @@ class TeaExplorerEnhanced:
     def create_blends_tab(self):
         """Create blends browser tab"""
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text=f"🫖 Blends ({self.blend_controller.get_blend_count()})")
+        self.notebook.add(frame, text="🫖 Blends")
         
         # Similar structure to tea tab
         paned = tk.PanedWindow(frame, orient='horizontal')
@@ -271,7 +280,7 @@ class TeaExplorerEnhanced:
     def create_cultivars_tab(self):
         """Create cultivars browser tab"""
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text=f"🌱 Cultivars ({self.cultivar_controller.get_cultivar_count()})")
+        self.notebook.add(frame, text="🌱 Cultivars")
         
         paned = tk.PanedWindow(frame, orient='horizontal')
         paned.pack(fill='both', expand=True, padx=5, pady=5)
@@ -321,7 +330,7 @@ class TeaExplorerEnhanced:
         frame = ttk.Frame(self.notebook)
         companies_count = self.company_controller.get_company_count()
         products_count = self.company_controller.get_product_count()
-        self.notebook.add(frame, text=f"🏢 Brands ({companies_count} / {products_count})")
+        self.notebook.add(frame, text="🏢 Brands")
         
         paned = tk.PanedWindow(frame, orient='horizontal')
         paned.pack(fill='both', expand=True, padx=5, pady=5)
@@ -384,7 +393,7 @@ class TeaExplorerEnhanced:
     def create_tisanes_tab(self):
         """Create tisanes/herbal teas browser tab"""
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text=f"🌿 Tisanes ({self.tisane_controller.get_tisane_count()})")
+        self.notebook.add(frame, text="🌿 Tisanes")
         
         paned = tk.PanedWindow(frame, orient='horizontal')
         paned.pack(fill='both', expand=True, padx=5, pady=5)
@@ -448,7 +457,7 @@ class TeaExplorerEnhanced:
         """Create tea journal tab"""
         frame = ttk.Frame(self.notebook)
         entries_count = len(self.journal_controller.get_all_entries())
-        self.notebook.add(frame, text=f"📓 Journal ({entries_count})")
+        self.notebook.add(frame, text="📓 Journal")
         
         # Similar to existing journal implementation
         ttk.Label(frame, text="Tea Tasting Journal", font=('', 14, 'bold')).pack(pady=10)
@@ -473,7 +482,7 @@ class TeaExplorerEnhanced:
         ttk.Button(button_frame, text="Delete Entry", command=self.delete_journal_entry).pack(side='left', padx=5)
         
         # Load entries
-        self.load_journal_entries()
+        self.load_journal_entries(); self.update_status_bar()
     
     def create_brewing_timer_tab(self):
         """Create brewing timer tab"""
@@ -618,40 +627,113 @@ Journal Entries: {len(self.journal_controller.get_all_entries())}
             text_widget.config(state='disabled')
     
     def create_map_tab(self):
-        """Create interactive world map tab"""
+        """Create interactive world map tab with plotted regions"""
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="🗺️ Map")
         
-        ttk.Label(frame, text="Tea Growing Regions", font=('', 14, 'bold')).pack(pady=10)
+        ttk.Label(frame, text="Tea Growing Regions of the World", font=('', 14, 'bold')).pack(pady=10)
         
-        # Try to load map image
+        # Try to load map image and plot regions
         try:
-            from PIL import Image, ImageTk
+            from PIL import Image, ImageTk, ImageDraw
             
+            # Load and resize map
             img = Image.open('world_map_bg.png')
-            # Resize if needed
             img = img.resize((1200, 600), Image.Resampling.LANCZOS)
+            
+            # Create drawing context to add region markers
+            draw = ImageDraw.Draw(img)
+            
+            # Get all regions with coordinates
+            regions = self.region_repo.find_all()
+            
+            # Plot each region as a red dot
+            for region in regions:
+                if region.latitude and region.longitude:
+                    # Convert lat/long to pixel coordinates
+                    # Map longitude (-180 to 180) to x (0 to 1200)
+                    # Map latitude (90 to -90) to y (0 to 600)
+                    x = int((region.longitude + 180) * (1200 / 360))
+                    y = int((90 - region.latitude) * (600 / 180))
+                    
+                    # Draw red circle for region
+                    radius = 6
+                    draw.ellipse([x-radius, y-radius, x+radius, y+radius], 
+                                fill='red', outline='darkred', width=2)
+            
+            # Convert to PhotoImage
             photo = ImageTk.PhotoImage(img)
             
-            map_label = tk.Label(frame, image=photo)
-            map_label.image = photo  # Keep a reference
-            map_label.pack(padx=10, pady=10)
+            # Create canvas for map
+            canvas = tk.Canvas(frame, width=1200, height=600, bg='white')
+            canvas.pack(padx=10, pady=10)
+            canvas.create_image(0, 0, image=photo, anchor='nw')
+            canvas.image = photo  # Keep a reference
             
-            # Region info
-            info_frame = ttk.LabelFrame(frame, text="Tea Regions", padding=10)
-            info_frame.pack(fill='x', padx=10, pady=5)
+            # Legend
+            legend_frame = ttk.LabelFrame(frame, text="Legend", padding=10)
+            legend_frame.pack(fill='x', padx=10, pady=5)
             
-            regions = self.region_repo.find_all()
-            region_text = "\n".join([f"• {r.name}, {r.country}" for r in regions[:10]])
-            ttk.Label(info_frame, text=region_text).pack()
+            # Create a mini canvas for legend dot
+            legend_canvas = tk.Canvas(legend_frame, width=20, height=20, bg='white', highlightthickness=0)
+            legend_canvas.pack(side='left', padx=5)
+            legend_canvas.create_oval(7, 7, 13, 13, fill='red', outline='darkred', width=2)
+            ttk.Label(legend_frame, text="= Tea Growing Region").pack(side='left')
+            
+            # Region list
+            info_frame = ttk.LabelFrame(frame, text=f"Tea Regions ({len(regions)} total)", padding=10)
+            info_frame.pack(fill='both', expand=True, padx=10, pady=5)
+            
+            # Create scrolled text for region list
+            region_text = scrolledtext.ScrolledText(info_frame, height=6, wrap='word')
+            region_text.pack(fill='both', expand=True)
+            
+            # Format regions by country
+            regions_by_country = {}
+            for r in regions:
+                if r.country not in regions_by_country:
+                    regions_by_country[r.country] = []
+                regions_by_country[r.country].append(r.name)
+            
+            # Display regions grouped by country
+            for country in sorted(regions_by_country.keys()):
+                region_text.insert(tk.END, f"\n{country}:\n", 'country')
+                for region_name in regions_by_country[country]:
+                    region_text.insert(tk.END, f"  • {region_name}\n")
+            
+            # Configure tag for country names (bold)
+            region_text.tag_config('country', font=('', 10, 'bold'))
+            region_text.config(state='disabled')
             
         except Exception as e:
             ttk.Label(frame, text=f"Map image not available: {e}").pack(pady=20)
     
     def create_status_bar(self):
-        """Create status bar"""
-        self.status_bar = ttk.Label(self.root, text="Ready", relief=tk.SUNKEN)
-        self.status_bar.pack(side='bottom', fill='x')
+        """Create comprehensive status bar showing database contents"""
+        # Widget is created in create_ui, this method is no longer used
+        # Keeping for compatibility
+        pass
+    
+    def update_status_bar(self):
+        """Update status bar with current database statistics"""
+        teas_count = self.tea_controller.get_tea_count()
+        blends_count = self.blend_controller.get_blend_count()
+        cultivars_count = self.cultivar_controller.get_cultivar_count()
+        companies_count = self.company_controller.get_company_count()
+        products_count = self.company_controller.get_product_count()
+        tisanes_count = self.tisane_controller.get_tisane_count()
+        journal_count = len(self.journal_controller.get_all_entries())
+        regions_count = len(self.region_repo.find_all())
+        
+        total = teas_count + blends_count + cultivars_count + companies_count + products_count + tisanes_count + regions_count
+        
+        status_text = (f"Database Contents: Teas: {teas_count} | Blends: {blends_count} | "
+                      f"Cultivars: {cultivars_count} | Companies: {companies_count} | "
+                      f"Products: {products_count} | Tisanes: {tisanes_count} | "
+                      f"Regions: {regions_count} | Journal Entries: {journal_count} | "
+                      f"Total: {total}")
+        
+        self.status_bar.config(text=status_text)
     
     # Data loading methods
     def load_teas(self):
@@ -772,30 +854,45 @@ Journal Entries: {len(self.journal_controller.get_all_entries())}
         tea = self.tea_controller.get_tea_by_name(name)
         
         if tea:
+            # Format with clear sections and better spacing
             details = f"""
-{tea.name}
-{'='*70}
+╔══════════════════════════════════════════════════════════════════════╗
+║  {tea.name.upper().center(68)}  ║
+╚══════════════════════════════════════════════════════════════════════╝
 
-Category: {tea.category}
-Origin: {tea.origin}
+CLASSIFICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Category:  {tea.category or 'N/A'}
+  Origin:    {tea.origin or 'N/A'}
+  Processing: {tea.processing or 'N/A'}
+  Oxidation:  {tea.oxidation or 'N/A'}
 
-Flavor Profile: {tea.flavor_profile}
-Aroma: {tea.aroma}
-Appearance: {tea.appearance}
+SENSORY PROFILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Flavor:     {tea.flavor_profile or 'N/A'}
+  Aroma:      {tea.aroma or 'N/A'}
+  Appearance: {tea.appearance or 'N/A'}
 
-Brewing:
-• Temperature: {tea.brew_temp_c}°C / {tea.brew_temp_f}°F
-• Steep Time: {tea.steep_time}
-• Water Ratio: {tea.tea_water_ratio}
-• Reinfusions: {tea.reinfusions}
+BREWING PARAMETERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Temperature:   {tea.brew_temp_c}°C ({tea.brew_temp_f}°F)
+  Steep Time:    {tea.steep_time or 'N/A'}
+  Water Ratio:   {tea.tea_water_ratio or 'N/A'}
+  Reinfusions:   {tea.reinfusions or 'N/A'}
 
-Caffeine: {tea.caffeine_level}
+PROPERTIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Caffeine:      {tea.caffeine_level or 'N/A'}
+  Price Range:   {tea.price_range or 'N/A'}
+  Cultivars:     {tea.cultivars or 'N/A'}
 
-Health Benefits:
-{tea.health_benefits}
+HEALTH BENEFITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{tea.health_benefits or 'N/A'}
 
-History:
-{tea.history}
+HISTORY & BACKGROUND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{tea.history or 'N/A'}
             """
             
             self.tea_detail_text.delete('1.0', tk.END)
@@ -813,27 +910,52 @@ History:
         
         if blend:
             details = f"""
-{blend.blend_name}
-{'='*70}
+╔══════════════════════════════════════════════════════════════════════╗
+║  {blend.blend_name.upper().center(68)}  ║
+╚══════════════════════════════════════════════════════════════════════╝
 
-Category: {blend.category}
-Base Tea: {blend.base_tea}
+BLEND INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Category:        {blend.category or 'N/A'}
+  Base Tea:        {blend.base_tea or 'N/A'}
+  Origin Region:   {blend.origin_region or 'N/A'}
 
-Ingredients: {blend.ingredients}
+INGREDIENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{blend.ingredients or 'N/A'}
 
-Flavor Profile: {blend.flavor_profile}
-Aroma: {blend.aroma}
+SENSORY PROFILE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Flavor:      {blend.flavor_profile or 'N/A'}
+  Aroma:       {blend.aroma or 'N/A'}
+  Appearance:  {blend.appearance or 'N/A'}
 
-Brewing:
-• Temperature: {blend.brew_temp_c}°C / {blend.brew_temp_f}°F
-• Steep Time: {blend.steep_time}
+BREWING PARAMETERS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Temperature:   {blend.brew_temp_c}°C ({blend.brew_temp_f}°F)
+  Steep Time:    {blend.steep_time or 'N/A'}
 
-Caffeine: {blend.caffeine_level}
+PROPERTIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Caffeine:         {blend.caffeine_level or 'N/A'}
+  Price Range:      {blend.price_range or 'N/A'}
+  Popular Brands:   {blend.popular_brands or 'N/A'}
 
-Description:
-{blend.description}
+DESCRIPTION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{blend.description or 'N/A'}
 
-Popular Brands: {blend.popular_brands}
+HEALTH BENEFITS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{blend.health_benefits or 'N/A'}
+
+SERVING SUGGESTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{blend.serving_suggestions or 'N/A'}
+
+HISTORY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{blend.history or 'N/A'}
             """
             
             self.blend_detail_text.delete('1.0', tk.END)
@@ -850,21 +972,27 @@ Popular Brands: {blend.popular_brands}
         
         if cultivar:
             details = f"""
-{cultivar.name}
-{'='*70}
+╔══════════════════════════════════════════════════════════════════════╗
+║  {cultivar.name.upper().center(68)}  ║
+╚══════════════════════════════════════════════════════════════════════╝
 
-Species: {cultivar.species}
-Origin Country: {cultivar.origin_country}
-Leaf Size: {cultivar.leaf_size}
+CULTIVAR INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Species:      {cultivar.species or 'N/A'}
+  Origin:       {cultivar.origin_country or 'N/A'}
+  Leaf Size:    {cultivar.leaf_size or 'N/A'}
 
-Characteristics:
-{cultivar.characteristics}
+CHARACTERISTICS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{cultivar.characteristics or 'N/A'}
 
-Common Uses:
-{cultivar.common_uses}
+COMMON USES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{cultivar.common_uses or 'N/A'}
 
-Notes:
-{cultivar.notes}
+ADDITIONAL NOTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{cultivar.notes or 'N/A'}
             """
             
             self.cultivar_detail_text.delete('1.0', tk.END)
@@ -1059,7 +1187,7 @@ Key Compounds:
                 notes=notes_text.get('1.0', tk.END).strip()
             )
             self.journal_controller.create_entry(entry)
-            self.load_journal_entries()
+            self.load_journal_entries(); self.update_status_bar()
             dialog.destroy()
             messagebox.showinfo("Success", f"Added {self.current_tea.name} to journal!")
         
@@ -1098,7 +1226,7 @@ Key Compounds:
                 notes=notes_text.get('1.0', tk.END).strip()
             )
             self.journal_controller.create_entry(entry)
-            self.load_journal_entries()
+            self.load_journal_entries(); self.update_status_bar()
             dialog.destroy()
             messagebox.showinfo("Success", "Journal entry saved!")
         
@@ -1138,7 +1266,7 @@ Notes:
             entries = self.journal_controller.get_all_entries()
             entry = entries[idx]
             self.journal_controller.delete_entry(entry.entry_id)
-            self.load_journal_entries()
+            self.load_journal_entries(); self.update_status_bar()
     
     # Comparison methods
     def add_tea_to_comparison(self):
@@ -1325,6 +1453,258 @@ Temp: {item.brew_temp_c}°C
                 self.tisane_controller.get_tisane_count())
         
         self.status_bar.config(text=f"Total Items: {total} | Teas: {self.tea_controller.get_tea_count()} | Blends: {self.blend_controller.get_blend_count()} | Cultivars: {self.cultivar_controller.get_cultivar_count()} | Tisanes: {self.tisane_controller.get_tisane_count()}")
+    
+    def show_glossary(self):
+        """Show tea terminology glossary"""
+        glossary_window = tk.Toplevel(self.root)
+        glossary_window.title("Tea Terminology Glossary")
+        glossary_window.geometry("900x700")
+        
+        # Create frame with scrolled text
+        frame = ttk.Frame(glossary_window, padding=10)
+        frame.pack(fill='both', expand=True)
+        
+        # Title
+        title_label = ttk.Label(frame, text="Tea Terminology Glossary", 
+                               font=('', 16, 'bold'))
+        title_label.pack(pady=10)
+        
+        # Scrolled text widget
+        glossary_text = scrolledtext.ScrolledText(frame, wrap='word', 
+                                                  font=('', 10))
+        glossary_text.pack(fill='both', expand=True)
+        
+        # Load and display glossary
+        try:
+            with open('tea_glossary.md', 'r', encoding='utf-8') as f:
+                content = f.read()
+                glossary_text.insert('1.0', content)
+        except FileNotFoundError:
+            glossary_text.insert('1.0', "Glossary file not found.")
+        
+        glossary_text.config(state='disabled')
+        
+        # Close button
+        ttk.Button(frame, text="Close", 
+                  command=glossary_window.destroy).pack(pady=10)
+    
+    def show_user_guide(self):
+        """Show user guide with application features"""
+        guide_window = tk.Toplevel(self.root)
+        guide_window.title("User Guide")
+        guide_window.geometry("800x600")
+        
+        # Create frame with scrolled text
+        frame = ttk.Frame(guide_window, padding=10)
+        frame.pack(fill='both', expand=True)
+        
+        # Title
+        title_label = ttk.Label(frame, text="Tea Explorer User Guide", 
+                               font=('', 16, 'bold'))
+        title_label.pack(pady=10)
+        
+        # Guide content
+        guide_text = scrolledtext.ScrolledText(frame, wrap='word', font=('', 10))
+        guide_text.pack(fill='both', expand=True)
+        
+        guide_content = """
+═══════════════════════════════════════════════════════════════════════════
+                         TEA EXPLORER USER GUIDE
+═══════════════════════════════════════════════════════════════════════════
+
+OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This comprehensive tea collection manager helps you explore, organize, and
+learn about teas, blends, cultivars, and tisanes from around the world.
+
+DATABASE CONTENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+• 49 Tea Varieties (from Camellia sinensis)
+• 26 Tea Blends
+• 26 Cultivars (tea plant varieties)
+• 28 Tea Companies with 117 Products
+• 45 Herbal Tisanes
+• 12 Tea-Growing Regions
+• Your Personal Journal Entries
+
+TAB OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🍵 TEAS TAB
+Browse all tea varieties from Camellia sinensis. Search by name or filter
+by category (White, Green, Oolong, Black, Pu-erh, Yellow).
+
+Features:
+  • Detailed information on origin, processing, and flavor profiles
+  • Brewing parameters (temperature, time, water ratio, reinfusions)
+  • Health benefits and historical background
+  • Add to Journal button for quick tasting notes
+  • Compare button to compare with other teas
+  • Similar Teas button for AI-powered recommendations
+
+🫖 BLENDS TAB
+Explore tea blends and flavored teas. Search by name or browse all blends.
+
+Features:
+  • Base tea and ingredient information
+  • Flavor profiles and serving suggestions
+  • Popular brands producing each blend
+  • Complete brewing instructions
+
+🌱 CULTIVARS TAB
+Learn about tea plant varieties (cultivars). Filter by species:
+  • Camellia sinensis var. sinensis (Chinese variety)
+  • Camellia sinensis var. assamica (Assam variety)
+
+Features:
+  • Leaf characteristics and origin information
+  • Common uses for each cultivar
+  • Growing conditions and notes
+
+🏢 BRANDS TAB
+Browse tea companies and their products. Filter companies by country.
+
+Features:
+  • Company information (headquarters, founding year, certifications)
+  • Product listings for each company
+  • Market segment and parent company details
+
+🌿 TISANES TAB
+Discover herbal infusions (not from tea plant). Search by name or filter
+by plant family.
+
+Features:
+  • Scientific names and traditional uses
+  • Health benefits and safety information
+  • Caffeine-free filter option
+  • Key compounds and TCM/Ayurvedic properties
+
+📓 JOURNAL TAB
+Record your tea tasting experiences.
+
+Features:
+  • Create new entries with tea name, rating (1-5 stars), and notes
+  • View past entries with dates
+  • Delete entries you no longer need
+  • Quick access from Teas tab via "Add to Journal" button
+
+⏱️ TIMER TAB
+Perfect your brewing with the built-in timer.
+
+Features:
+  • Preset times for different tea types:
+    - Green Tea: 3 minutes
+    - Black Tea: 5 minutes
+    - Oolong Tea: 4 minutes
+    - White Tea: 4 minutes
+    - Pu-erh Tea: 5 minutes
+  • Manual time setting (1-30 minutes)
+  • Start, Pause, and Reset controls
+  • Alert notification when brewing is complete
+
+⚖️ COMPARE TAB
+Compare up to 3 teas side-by-side.
+
+Features:
+  • Add teas from Teas tab using Compare button
+  • Side-by-side comparison of:
+    - Category
+    - Origin
+    - Caffeine level
+    - Steep time and temperature
+  • Clear all button to start fresh comparison
+
+📊 DASHBOARD TAB
+Visualize your collection with statistics and charts.
+
+Features:
+  • Collection statistics summary
+  • Category Distribution (pie chart)
+  • Origin Countries (bar chart)
+  • Rating Distribution from journal (histogram)
+
+📖 GUIDE TAB
+Comprehensive guide to tea varieties (200+ varieties documented).
+
+Features:
+  • Detailed descriptions of tea types
+  • Processing methods
+  • Regional specialties
+
+📜 HISTORY TAB
+Learn about tea's rich cultural history.
+
+Features:
+  • Origins of tea culture
+  • Historical trade routes
+  • Cultural significance across civilizations
+
+🗺️ MAP TAB
+Interactive world map showing tea-growing regions.
+
+Features:
+  • Visual map with red markers for each region
+  • Complete list of regions grouped by country
+  • Geographic distribution of tea production
+
+MENU BAR FEATURES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE MENU
+  • Export Collection (CSV) - Export all teas to CSV format
+  • Export Collection (JSON) - Export all teas to JSON format
+  • Exit - Close the application
+
+VIEW MENU
+  • Dark Mode - Dark color scheme
+  • Light Mode - Light color scheme
+  • Tea Theme - Custom tea-inspired theme
+
+HELP MENU
+  • Tea Glossary - Comprehensive tea terminology reference
+  • User Guide - This guide
+  • About - Application information
+
+STATUS BAR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The status bar at the bottom shows complete database statistics:
+  • Counts for each data type
+  • Total items in collection
+  • Journal entries count
+
+KEYBOARD SHORTCUTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Click items in lists to view details
+  • Use search boxes for quick filtering
+  • Dropdown filters for category/family selection
+
+TIPS & BEST PRACTICES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  1. Use the Journal to track your tea tastings and preferences
+  2. Try the Similar Teas feature to discover new favorites
+  3. Compare teas before purchasing to understand differences
+  4. Check the Glossary when encountering unfamiliar terms
+  5. Use the Timer for consistent brewing results
+  6. Export your collection for backup or sharing
+  7. Explore different themes for comfortable viewing
+
+GETTING HELP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Check the Tea Glossary for terminology questions
+  • Review this User Guide for feature explanations
+  • See the About dialog for application information
+
+═══════════════════════════════════════════════════════════════════════════
+                          Enjoy exploring tea!
+═══════════════════════════════════════════════════════════════════════════
+        """
+        
+        guide_text.insert('1.0', guide_content)
+        guide_text.config(state='disabled')
+        
+        # Close button
+        ttk.Button(frame, text="Close", 
+                  command=guide_window.destroy).pack(pady=10)
     
     def show_about(self):
         """Show about dialog"""

@@ -71,13 +71,9 @@ class RecommendationEngine:
         if tea1.category and tea2.category and tea1.category == tea2.category:
             score += 3.0
         
-        # Same origin country (medium match)
+        # Same origin (medium match)
         if tea1.origin and tea2.origin and tea1.origin == tea2.origin:
-            score += 2.0
-        
-        # Same region (weak match)
-        if tea1.origin_region and tea2.origin_region and tea1.origin_region == tea2.origin_region:
-            score += 1.0
+            score += 2.5
         
         # Similar caffeine level (weak match)
         if tea1.caffeine_level and tea2.caffeine_level and tea1.caffeine_level == tea2.caffeine_level:

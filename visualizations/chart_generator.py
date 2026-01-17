@@ -102,7 +102,7 @@ class ChartGenerator:
             matplotlib Figure
         """
         # Count origins
-        origins = [tea.origin_country for tea in teas if tea.origin_country]
+        origins = [tea.origin for tea in teas if tea.origin]
         origin_counts = Counter(origins).most_common(top_n)
         
         countries = [item[0] for item in origin_counts]
@@ -364,7 +364,7 @@ class DashboardGenerator:
     
     def _add_origin_bars(self, ax, teas, top_n=5):
         """Add origin bar chart to axis"""
-        origins = [tea.origin_country for tea in teas if tea.origin_country]
+        origins = [tea.origin for tea in teas if tea.origin]
         origin_counts = Counter(origins).most_common(top_n)
         
         countries = [item[0] for item in origin_counts]
@@ -423,7 +423,7 @@ class DashboardGenerator:
             avg_rating = sum(ratings) / len(ratings) if ratings else 0
         
         categories = len(set(tea.category for tea in teas if tea.category))
-        countries = len(set(tea.origin_country for tea in teas if tea.origin_country))
+        countries = len(set(tea.origin for tea in teas if tea.origin))
         
         # Create statistics text
         stats_text = f"""
@@ -458,11 +458,11 @@ if __name__ == '__main__':
     
     # Create sample data
     sample_teas = [
-        type('Tea', (), {'category': 'Green', 'origin_country': 'Japan', 'caffeine_level': 'Medium'})(),
-        type('Tea', (), {'category': 'Green', 'origin_country': 'China', 'caffeine_level': 'Low'})(),
-        type('Tea', (), {'category': 'Black', 'origin_country': 'India', 'caffeine_level': 'High'})(),
-        type('Tea', (), {'category': 'Oolong', 'origin_country': 'China', 'caffeine_level': 'Medium'})(),
-        type('Tea', (), {'category': 'Green', 'origin_country': 'Japan', 'caffeine_level': 'Medium'})(),
+        type('Tea', (), {'category': 'Green', 'origin': 'Japan', 'caffeine_level': 'Medium'})(),
+        type('Tea', (), {'category': 'Green', 'origin': 'China', 'caffeine_level': 'Low'})(),
+        type('Tea', (), {'category': 'Black', 'origin': 'India', 'caffeine_level': 'High'})(),
+        type('Tea', (), {'category': 'Oolong', 'origin': 'China', 'caffeine_level': 'Medium'})(),
+        type('Tea', (), {'category': 'Green', 'origin': 'Japan', 'caffeine_level': 'Medium'})(),
     ]
     
     sample_entries = [
