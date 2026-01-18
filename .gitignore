@@ -6,3 +6,4 @@
 /recommendations/__pycache__
 /visualizations/__pycache__
 *.pyc
+logs/tea_explorer.log
