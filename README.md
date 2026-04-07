@@ -1,465 +1,225 @@
-# Tea Collection Explorer - Phase 2: Architecture
+# Tea & Tisane Collection Explorer
 
-## 🎉 Complete Implementation
+A comprehensive desktop application for exploring, organizing, and learning about teas, blends, cultivars, tisanes, and tea companies from around the world. Built with Python and Tkinter using a clean MVC architecture.
 
-This is the complete Phase 2 architecture with all components ready to use!
+![Tea Browser](screenshots/tea_browser.png)
 
-### What's Included
+## Features
 
-✅ **Phase 1 Foundation** (3 files)
-- `config.py` - Configuration management
-- `logger_setup.py` - Logging system (pytest compatible)
-- `validation.py` - Input validation
+### Tea Browser
+Browse 160+ tea varieties from the Camellia sinensis plant. Search by name or filter by category (White, Green, Yellow, Oolong, Black, Pu-erh). Each tea includes detailed information on origin, processing, flavor profiles, brewing parameters, health benefits, and history.
 
-✅ **Models** (4 files)
-- `models/tea.py` - Tea dataclass with validation
-- `models/blend.py` - Blend dataclass
-- `models/journal_entry.py` - Journal entry with ratings
-- Type-safe, validated domain objects
+![Tea Browser](screenshots/tea_browser.png)
 
-✅ **Database Layer** (5 files)
-- `database/connection.py` - Connection manager
-- `database/tea_repository.py` - Tea data access
-- `database/blend_repository.py` - Blend data access
-- `database/journal_repository.py` - Journal (JSON storage)
-- Full repository pattern implementation
+### Blends Browser
+Explore 70+ tea blends and flavored teas with ingredient lists, serving suggestions, popular brands, and complete brewing instructions.
 
-✅ **Controllers** (4 files)
-- `controllers/tea_controller.py` - Tea business logic
-- `controllers/blend_controller.py` - Blend operations
-- `controllers/journal_controller.py` - Journal operations
-- Clean separation of concerns
+![Blends Browser](screenshots/blends_browser.png)
 
-✅ **Views** (8 files)
-- `views/main_window.py` - Main application window
-- `views/widgets/search_panel.py` - Search widget
-- `views/widgets/list_panel.py` - List widget
-- `views/widgets/detail_panel.py` - Detail widget
-- `views/tabs/base_tab.py` - Base tab class
-- `views/tabs/tea_tab.py` - Tea browser tab
-- Reusable UI components
+### Cultivars Browser
+Learn about 59 tea plant cultivars, filterable by species (Camellia sinensis var. sinensis, var. assamica). Includes leaf characteristics, origin information, growing conditions, and common uses.
 
-✅ **Services** (2 files)
-- `services/export_service.py` - CSV/JSON export
-- Business service layer
+![Cultivars Browser](screenshots/cultivars_browser.png)
 
-✅ **Utils** (2 files)
-- `utils/formatters.py` - Formatting utilities
-- Helper functions
+### Brands & Products
+Browse tea companies and their product catalogs, filterable by country. Includes company details (headquarters, founding year, certifications, market segment) and product listings.
 
-✅ **Tests** (1 file)
-- `tests/test_models.py` - Model tests
-- Ready for expansion
+![Brands Browser](screenshots/brands_browser.png)
 
-✅ **Documentation** (This file)
+### Tisanes (Herbal Teas)
+Discover 154 herbal infusions with scientific names, traditional uses, health benefits, key compounds, and safety information. Filter by plant family or caffeine-free status.
 
----
+![Tisanes Browser](screenshots/tisanes_browser.png)
 
-## 📁 Project Structure
+### Tea Journal
+Record your tea tasting experiences with ratings (1-5 stars), brewing parameters, and tasting notes. Quick-add entries directly from the tea browser.
+
+![Journal](screenshots/journal.png)
+
+### Brewing Timer
+Built-in timer with presets for Green (3 min), Black (5 min), Oolong (4 min), White (4 min), and Pu-erh (5 min). Supports manual time setting and alerts when brewing is complete.
+
+![Brewing Timer](screenshots/brewing_timer.png)
+
+### Tea Comparison
+Compare up to 3 teas side-by-side on category, origin, caffeine level, steep time, and temperature.
+
+### Dashboard & Visualizations
+Collection statistics with interactive charts: category distribution (pie chart), origin countries (bar chart), and journal rating distribution (histogram). Powered by Matplotlib.
+
+![Dashboard](screenshots/dashboard.png)
+
+### World Map
+Interactive map showing tea-growing regions around the world with markers and a region directory grouped by country.
+
+![World Map](screenshots/world_map.png)
+
+### Additional Features
+- **Tea Varieties Guide** - Comprehensive reference covering 200+ varieties
+- **Tea History** - Cultural and historical background of tea
+- **Tea Glossary** - Terminology reference (via Help menu)
+- **Theme Support** - Light, Dark, and Tea-inspired color schemes
+- **Export** - Export your collection to CSV or JSON
+- **Smart Recommendations** - Find similar teas based on category, origin, and flavor profiles
+
+## Database Contents
+
+| Category | Count |
+|----------|-------|
+| Tea Varieties | 160 |
+| Tea Blends | 70 |
+| Cultivars | 59 |
+| Tea Companies | 28+ |
+| Products | 117+ |
+| Herbal Tisanes | 154 |
+| Growing Regions | 12 |
+
+**Total: 443+ items** across two SQLite databases
+
+## Quick Start
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Required packages: `matplotlib`, `Pillow`, `numpy`
+
+Tkinter is included with most Python installations.
+
+### 2. Set Up the Database
+
+```bash
+python setup_database.py
+```
+
+### 3. Run the Application
+
+```bash
+python main.py
+```
+
+## Project Structure
 
 ```
-tea_explorer_phase2/
-├── config.py                    # Configuration (Phase 1)
-├── logger_setup.py              # Logging (Phase 1)
-├── validation.py                # Validation (Phase 1)
+tea_explorer/
+├── main.py                      # Application entry point
+├── config.py                    # Configuration management
+├── logger_setup.py              # Logging system
+├── validation.py                # Input validation
 │
 ├── models/                      # Domain objects
-│   ├── __init__.py
-│   ├── tea.py
-│   ├── blend.py
-│   └── journal_entry.py
+│   ├── tea.py                   # Tea dataclass
+│   ├── blend.py                 # Blend dataclass
+│   ├── journal_entry.py         # Journal entry with ratings
+│   ├── cultivar.py              # Tea plant cultivar
+│   ├── company.py               # Tea company
+│   ├── tisane.py                # Herbal tisane
+│   └── region.py                # Tea growing region
 │
-├── database/                    # Data access
-│   ├── __init__.py
-│   ├── connection.py
-│   ├── tea_repository.py
-│   ├── blend_repository.py
-│   └── journal_repository.py
+├── database/                    # Data access layer
+│   ├── connection.py            # Connection manager
+│   ├── tea_repository.py        # Tea data access
+│   ├── blend_repository.py      # Blend data access
+│   ├── journal_repository.py    # Journal (JSON storage)
+│   ├── cultivar_repository.py   # Cultivar data access
+│   ├── company_repository.py    # Company data access
+│   ├── tisane_repository.py     # Tisane data access
+│   └── region_repository.py     # Region data access
 │
 ├── controllers/                 # Business logic
-│   ├── __init__.py
-│   ├── tea_controller.py
-│   ├── blend_controller.py
-│   └── journal_controller.py
+│   ├── tea_controller.py        # Tea operations
+│   ├── blend_controller.py      # Blend operations
+│   ├── journal_controller.py    # Journal operations
+│   ├── cultivar_controller.py   # Cultivar operations
+│   ├── company_controller.py    # Company operations
+│   └── tisane_controller.py     # Tisane operations
 │
-├── views/                       # User interface
-│   ├── __init__.py
-│   ├── main_window.py
-│   ├── widgets/
-│   │   ├── __init__.py
+├── views/                       # UI components
+│   ├── main_window.py           # Main application window
+│   ├── widgets/                 # Reusable widgets
 │   │   ├── search_panel.py
 │   │   ├── list_panel.py
 │   │   └── detail_panel.py
-│   └── tabs/
-│       ├── __init__.py
+│   └── tabs/                    # Tab implementations
 │       ├── base_tab.py
 │       └── tea_tab.py
 │
 ├── services/                    # Business services
-│   ├── __init__.py
-│   └── export_service.py
+│   └── export_service.py        # CSV/JSON export
+│
+├── themes/                      # Theme system
+│   └── theme_manager.py         # Dark/Light/Tea themes
+│
+├── visualizations/              # Charts and analytics
+│   └── chart_generator.py       # Matplotlib charts
+│
+├── recommendations/             # Smart suggestions
+│   └── engine.py                # Recommendation engine
+│
+├── performance/                 # Performance tools
+│   ├── cache.py                 # Caching system
+│   └── profiler.py              # Performance monitor
 │
 ├── utils/                       # Utilities
-│   ├── __init__.py
-│   └── formatters.py
+│   └── formatters.py            # Formatting helpers
 │
 ├── tests/                       # Test suite
-│   └── test_models.py
+│   └── test_models.py           # Model tests
 │
-├── main.py                      # Application entry
-├── requirements.txt             # Dependencies
-└── README.md                    # This file
+├── tea_collection.db            # Main tea database (SQLite)
+├── tisane_collection.db         # Tisane database (SQLite)
+├── tea_journal.json             # Journal entries
+├── tea_varieties_list.md        # Tea varieties guide
+├── tea_history.md               # Tea history reference
+├── tea_glossary.md              # Terminology glossary
+├── tisanes.md                   # Tisane reference
+├── world_map_bg.png             # World map background
+├── theme_config.json            # Theme preferences
+├── requirements.txt             # Python dependencies
+└── screenshots/                 # Application screenshots
 ```
 
----
+## Architecture
 
-## 🚀 Quick Start
+The application follows the **MVC (Model-View-Controller)** pattern with a **Repository** data access layer:
 
-### 1. Setup
-
-```bash
-# Extract the tar.gz file
-tar -xzf tea_explorer_phase2.tar.gz
-cd tea_explorer_phase2
-
-# Install dependencies
-pip install -r requirements.txt
+```
+User Input --> View --> Controller --> Repository --> Database
+                 ^          |
+               Models    Business Logic
 ```
 
-### 2. Run the Application
+- **Models** - Type-safe dataclasses with validation
+- **Repositories** - Data access using the Repository pattern
+- **Controllers** - Business logic and data coordination
+- **Views** - Tkinter UI components
+- **Services** - Cross-cutting concerns (export, recommendations)
+
+## Configuration
+
+Configuration is managed through `config.py` with environment variable support:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TEA_DB_PATH` | `tea_collection.db` | Tea database path |
+| `TISANE_DB_PATH` | `tisane_collection.db` | Tisane database path |
+| `WINDOW_WIDTH` | `1400` | Window width |
+| `WINDOW_HEIGHT` | `900` | Window height |
+| `THEME` | `light` | Theme (light/dark/tea) |
+| `LOG_LEVEL` | `INFO` | Logging level |
+
+## Testing
 
 ```bash
-python main.py
-```
-
-This launches the demo application showing the clean architecture in action!
-
-### 3. Run Tests
-
-```bash
+# Run all tests
 pytest tests/ -v
+
+# With coverage
+pytest tests/ -v --cov=. --cov-report=html
 ```
 
----
-
-## 🏗️ Architecture Overview
-
-### MVC Pattern
-
-```
-User Input → View → Controller → Repository → Database
-                ↑         ↓
-              Models   Business Logic
-```
-
-### Example: Searching for Tea
-
-```python
-# 1. User enters search in UI (View)
-search_panel.on_search("sencha", "Green")
-
-# 2. View calls Controller
-teas = tea_controller.search_teas(query="sencha", category="Green")
-
-# 3. Controller uses Repository
-teas = tea_repository.find_by_category("Green")
-
-# 4. Repository returns Models
-return [Tea.from_db_row(row) for row in cursor.fetchall()]
-
-# 5. Results flow back to View
-list_panel.set_items([tea.get_display_name() for tea in teas])
-```
-
----
-
-## 💡 Key Features
-
-### 1. Type-Safe Models
-
-```python
-from models import Tea
-
-tea = Tea(name="Sencha", category="Green")
-print(tea.get_display_name())  # "Sencha"
-print(tea.to_dict())  # Convert to dictionary
-```
-
-### 2. Repository Pattern
-
-```python
-from database import TeaRepository
-
-repo = TeaRepository(connection)
-
-# Find all teas
-teas = repo.find_all()
-
-# Search
-results = repo.search("sencha")
-
-# Filter by category
-green_teas = repo.find_by_category("Green")
-```
-
-### 3. Business Controllers
-
-```python
-from controllers import TeaController
-
-controller = TeaController(tea_repository)
-
-# Complex search with multiple filters
-teas = controller.search_teas(
-    query="japan",
-    category="Green",
-    caffeine="Medium"
-)
-
-# Get statistics
-count = controller.get_tea_count()
-categories = controller.get_categories()
-```
-
-### 4. Reusable Widgets
-
-```python
-from views.widgets import SearchPanel, ListPanel
-
-# Create search panel
-search = SearchPanel(
-    parent,
-    on_search=self.handle_search,
-    categories=["Green", "Black", "Oolong"]
-)
-
-# Create list panel
-list_panel = ListPanel(
-    parent,
-    title="Teas",
-    on_select=self.handle_selection
-)
-```
-
-### 5. Automatic Logging
-
-```python
-from logger_setup import LoggerMixin, log_method_call
-
-class TeaController(LoggerMixin):
-    @log_method_call
-    def search_teas(self, query: str):
-        # Method calls automatically logged!
-        return self.repository.search(query)
-```
-
----
-
-## 📊 Before vs After
-
-| Aspect | Before (Monolithic) | After (Phase 2) |
-|--------|-------------------|-----------------|
-| **File Size** | 3,145 lines | 50-200 lines/file |
-| **Testing** | Very difficult | Easy per-component |
-| **Maintenance** | Hard | Simple |
-| **Team Work** | Merge conflicts | Parallel development |
-| **Adding Features** | Risky | Straightforward |
-| **Code Reuse** | Copy-paste | Import & use |
-
----
-
-## 🧪 Testing
-
-### Run All Tests
-
-```bash
-pytest tests/ -v --cov=.
-```
-
-### Test Individual Components
-
-```python
-# Test models
-pytest tests/test_models.py -v
-
-# Test specific class
-pytest tests/test_models.py::TestTeaModel -v
-
-# Test specific method
-pytest tests/test_models.py::TestTeaModel::test_create_tea -v
-```
-
-### Example Test
-
-```python
-def test_tea_search():
-    # Arrange
-    mock_repo = Mock()
-    mock_repo.search.return_value = [
-        Tea(name="Sencha", category="Green")
-    ]
-    controller = TeaController(mock_repo)
-    
-    # Act
-    results = controller.search_teas("sencha")
-    
-    # Assert
-    assert len(results) == 1
-    assert results[0].name == "Sencha"
-```
-
----
-
-## 📚 Documentation
-
-### Available in `docs/` folder:
-
-1. **ARCHITECTURE.md** - Detailed architecture guide
-2. **API.md** - API reference
-3. **EXAMPLES.md** - Usage examples
-
----
-
-## 🔄 Extending the Architecture
-
-### Adding a New Feature (Example: Tisanes)
-
-1. **Create Model** (`models/tisane.py`)
-```python
-@dataclass
-class Tisane:
-    name: str
-    ingredients: str
-```
-
-2. **Create Repository** (`database/tisane_repository.py`)
-```python
-class TisaneRepository:
-    def find_all(self) -> List[Tisane]:
-        ...
-```
-
-3. **Create Controller** (`controllers/tisane_controller.py`)
-```python
-class TisaneController:
-    def search_tisanes(self, query: str):
-        ...
-```
-
-4. **Create Tab** (`views/tabs/tisane_tab.py`)
-```python
-class TisaneTab(BaseTab):
-    def __init__(self, parent, controller):
-        ...
-```
-
-5. **Wire Up** (in `main.py`)
-```python
-tisane_repo = TisaneRepository(db.get_connection())
-tisane_controller = TisaneController(tisane_repo)
-```
-
----
-
-## 🎯 Next Steps
-
-### Immediate
-
-1. ✅ Extract and run the project
-2. ✅ Study the code structure
-3. ✅ Run the demo application
-4. ✅ Run the tests
-
-### Short Term
-
-- [ ] Add more repository methods
-- [ ] Implement remaining tabs
-- [ ] Add more comprehensive tests
-- [ ] Create import service
-- [ ] Add data validation
-
-### Long Term (Phase 3+)
-
-- **Phase 3:** Performance (caching, lazy loading, optimization)
-- **Phase 4:** Features (recommendations, batch operations, advanced search)
-- **Phase 5:** Polish (modern UI, data visualizations, themes)
-
----
-
-## 💻 Development
-
-### Code Style
-
-- Type hints throughout
-- Docstrings for all public methods
-- Logging via LoggerMixin
-- Follow PEP 8
-
-### Adding Tests
-
-```python
-# tests/test_my_feature.py
-import pytest
-from my_module import MyClass
-
-class TestMyClass:
-    def test_something(self):
-        obj = MyClass()
-        result = obj.method()
-        assert result == expected
-```
-
-### Debugging
-
-Enable debug logging:
-
-```python
-# In config.py or environment
-export TEA_EXPLORER_LOG_LEVEL=DEBUG
-python main.py
-```
-
----
-
-## 🤝 Contributing
-
-When adding features:
-
-1. Follow existing patterns
-2. Add type hints
-3. Write tests
-4. Update documentation
-5. Use logging
-
----
-
-## 📝 License
+## License
 
 This is a reference implementation for educational purposes.
-
----
-
-## 🎉 Summary
-
-Phase 2 delivers:
-
-✅ **Professional Architecture** - Industry-standard MVC pattern  
-✅ **Modular Code** - 50-200 lines per file (vs 3,145 monolith)  
-✅ **Type Safety** - Full type hints throughout  
-✅ **Testable** - Easy to test each component  
-✅ **Maintainable** - Clear structure and separation  
-✅ **Extensible** - Simple to add features  
-✅ **Production Ready** - Ready for real use  
-
-**Your tea collection explorer now has solid architectural foundations!** 🫖✨
-
----
-
-## 📞 Support
-
-Questions? Check:
-- Code comments and docstrings
-- `docs/` folder for detailed guides
-- Test files for usage examples
-
-Happy coding! 🚀
