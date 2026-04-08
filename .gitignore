@@ -7,3 +7,4 @@
 /visualizations/__pycache__
 *.pyc
 logs/tea_explorer.log
+/controllers/__pycache__

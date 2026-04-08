@@ -85,7 +85,7 @@ class RecommendationEngine:
             score += flavor_sim * 2.0
         
         # Similar processing method
-        if tea1.processing_method and tea2.processing_method and tea1.processing_method == tea2.processing_method:
+        if tea1.processing and tea2.processing and tea1.processing == tea2.processing:
             score += 1.0
         
         return score

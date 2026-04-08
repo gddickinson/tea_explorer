@@ -1,26 +1,20 @@
 """
-Tea Controller - Phase 3 Optimized Version
-Business logic for tea operations with caching and profiling
+Tea Controller - Business logic for tea operations
 """
 
 from typing import List, Optional
-from functools import lru_cache
 
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / 'tea_explorer_v3'))
 from logger_setup import LoggerMixin, log_method_call
+
 from models import Tea
 from database import TeaRepository
-from performance import cached_permanent, profile_method
 
 
-class TeaControllerOptimized(LoggerMixin):
-    """
-    Optimized controller for tea operations
-    Includes caching and performance profiling
-    """
+class TeaController(LoggerMixin):
+    """Controller for tea operations"""
     
     def __init__(self, tea_repository: TeaRepository):
         """
@@ -30,13 +24,12 @@ class TeaControllerOptimized(LoggerMixin):
             tea_repository: Tea repository for data access
         """
         self.repository = tea_repository
-        self.logger.info("TeaControllerOptimized initialized (Phase 3)")
+        self.logger.info("TeaController initialized")
     
-    @profile_method
     @log_method_call
     def get_all_teas(self) -> List[Tea]:
         """
-        Get all teas (profiled)
+        Get all teas
         
         Returns:
             List of all Tea objects
@@ -45,12 +38,19 @@ class TeaControllerOptimized(LoggerMixin):
         self.logger.debug(f"Retrieved {len(teas)} teas")
         return teas
     
-    @profile_method
+    @log_method_call
     def get_tea_by_name(self, name: str) -> Optional[Tea]:
-        """Get specific tea by name"""
+        """
+        Get specific tea by name
+        
+        Args:
+            name: Tea name
+            
+        Returns:
+            Tea object or None
+        """
         return self.repository.find_by_name(name)
     
-    @profile_method
     @log_method_call
     def search_teas(
         self,
@@ -60,7 +60,7 @@ class TeaControllerOptimized(LoggerMixin):
         caffeine_level: Optional[str] = None
     ) -> List[Tea]:
         """
-        Search teas with multiple filters (profiled)
+        Search teas with multiple filters
         
         Args:
             query: Search query for name/flavor
@@ -99,38 +99,27 @@ class TeaControllerOptimized(LoggerMixin):
         self.logger.debug(f"Search returned {len(teas)} results")
         return teas
     
-    @lru_cache(maxsize=1)
-    @profile_method
+    @log_method_call
     def get_categories(self) -> List[str]:
         """
-        Get all tea categories (cached permanently)
-        
-        This is cached because categories rarely change.
-        First call queries DB, subsequent calls return cached result.
+        Get all tea categories
         
         Returns:
             List of category names
         """
-        categories = self.repository.get_categories()
-        self.logger.debug(f"Retrieved {len(categories)} categories (cached)")
-        return categories
+        return self.repository.get_categories()
     
-    @lru_cache(maxsize=1)
-    @profile_method
+    @log_method_call
     def get_countries(self) -> List[str]:
         """
-        Get all origin countries (cached permanently)
-        
-        This is cached because countries rarely change.
+        Get all origin countries
         
         Returns:
             List of country names
         """
-        countries = self.repository.get_countries()
-        self.logger.debug(f"Retrieved {len(countries)} countries (cached)")
-        return countries
+        return self.repository.get_countries()
     
-    @profile_method
+    @log_method_call
     def get_teas_by_category(self, category: str) -> List[Tea]:
         """
         Get all teas in a category
@@ -143,11 +132,10 @@ class TeaControllerOptimized(LoggerMixin):
         """
         return self.repository.find_by_category(category)
     
-    @cached_permanent
-    @profile_method
+    @log_method_call
     def get_tea_count(self) -> int:
         """
-        Get total number of teas (cached)
+        Get total number of teas
         
         Returns:
             Count of teas
@@ -171,9 +159,3 @@ class TeaControllerOptimized(LoggerMixin):
             'steep_time': tea.steep_time or 'Not specified',
             'caffeine': tea.caffeine_level or 'Not specified',
         }
-    
-    def clear_cache(self):
-        """Clear all caches (useful after data updates)"""
-        self.get_categories.cache_clear()
-        self.get_countries.cache_clear()
-        self.logger.info("Cleared controller caches")

@@ -21,13 +21,13 @@ class TestTeaModel:
             'tea_id': 1,
             'name': 'Sencha',
             'category': 'Green',
-            'origin_country': 'Japan'
+            'origin': 'Japan'
         }
         tea = Tea.from_dict(data)
         assert tea.tea_id == 1
         assert tea.name == 'Sencha'
         assert tea.category == 'Green'
-        assert tea.origin_country == 'Japan'
+        assert tea.origin == 'Japan'
     
     def test_tea_to_dict(self):
         """Test converting tea to dictionary"""
@@ -38,7 +38,7 @@ class TestTeaModel:
     
     def test_tea_display_name(self):
         """Test tea display name"""
-        tea = Tea(name="Sencha", origin_region="Shizuoka")
+        tea = Tea(name="Sencha", origin="Shizuoka")
         assert tea.get_display_name() == "Sencha (Shizuoka)"
     
     def test_tea_temperature_display(self):
