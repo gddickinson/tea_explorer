@@ -222,4 +222,4 @@ pytest tests/ -v --cov=. --cov-report=html
 
 ## License
 
-This is a reference implementation for educational purposes.
+Released under the [MIT licence](LICENSE).
