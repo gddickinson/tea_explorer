@@ -40,8 +40,8 @@ class UIConfig:
             raise ValueError("Window width must be at least 800 pixels")
         if self.window_height < 600:
             raise ValueError("Window height must be at least 600 pixels")
-        if self.theme not in ['light', 'dark']:
-            raise ValueError("Theme must be 'light' or 'dark'")
+        if self.theme not in ['light', 'dark', 'tea']:
+            raise ValueError("Theme must be 'light', 'dark' or 'tea'")
         if self.font_size < 8 or self.font_size > 20:
             raise ValueError("Font size must be between 8 and 20")
 
