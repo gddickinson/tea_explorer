@@ -166,7 +166,7 @@ class ThemeManager:
         'tea': TEA_THEME,
     }
     
-    def __init__(self, config_path: str = 'theme_config.json'):
+    def __init__(self, config_path: str = str(Path(__file__).resolve().parent.parent / 'theme_config.json')):
         """
         Initialize theme manager
         

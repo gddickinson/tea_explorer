@@ -58,19 +58,19 @@ class TeaExplorerEnhanced:
         
         # Initialize databases
         self.logger.info("Initializing databases")
-        self.tea_db = DatabaseConnection("tea_collection.db")
+        self.tea_db = DatabaseConnection(self.config.database.tea_db_path)
         
         # Create repositories
         self.logger.info("Creating repositories")
         tea_conn = self.tea_db.get_connection()
         self.tea_repo = TeaRepository(tea_conn)
         self.blend_repo = BlendRepository(tea_conn)
-        self.journal_repo = JournalRepository("tea_journal.json")
+        self.journal_repo = JournalRepository(self.config.journal_path)
         self.cultivar_repo = CultivarRepository(tea_conn)
         self.company_repo = CompanyRepository(tea_conn)
         self.product_repo = ProductRepository(tea_conn)
         self.region_repo = RegionRepository(tea_conn)
-        self.tisane_repo = TisaneRepository("tisane_collection.db")
+        self.tisane_repo = TisaneRepository(str(self.config.database.tisane_db_path))
         
         # Create controllers
         self.logger.info("Creating controllers")
@@ -598,7 +598,7 @@ Journal Entries: {len(self.journal_controller.get_all_entries())}
         text_widget.pack(fill='both', expand=True, padx=10, pady=10)
         
         try:
-            with open('tea_varieties_list.md', 'r', encoding='utf-8') as f:
+            with open(self.config.guide_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 text_widget.insert('1.0', content)
                 text_widget.config(state='disabled')
@@ -618,7 +618,7 @@ Journal Entries: {len(self.journal_controller.get_all_entries())}
         text_widget.pack(fill='both', expand=True, padx=10, pady=10)
         
         try:
-            with open('tea_history.md', 'r', encoding='utf-8') as f:
+            with open(self.config.history_path, 'r', encoding='utf-8') as f:
                 content = f.read()
                 text_widget.insert('1.0', content)
                 text_widget.config(state='disabled')
@@ -638,7 +638,7 @@ Journal Entries: {len(self.journal_controller.get_all_entries())}
             from PIL import Image, ImageTk, ImageDraw
             
             # Load and resize map
-            img = Image.open('world_map_bg.png')
+            img = Image.open(self.config.base_dir / 'world_map_bg.png')
             img = img.resize((1200, 600), Image.Resampling.LANCZOS)
             
             # Create drawing context to add region markers
@@ -1471,7 +1471,7 @@ Temp: {item.brew_temp_c}°C
         
         # Load and display glossary
         try:
-            with open('tea_glossary.md', 'r', encoding='utf-8') as f:
+            with open(self.config.base_dir / 'tea_glossary.md', 'r', encoding='utf-8') as f:
                 content = f.read()
                 glossary_text.insert('1.0', content)
         except FileNotFoundError:
