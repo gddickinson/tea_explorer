@@ -8,3 +8,5 @@
 *.pyc
 logs/tea_explorer.log
 /controllers/__pycache__
+site/
+.pytest_cache/

@@ -104,6 +104,19 @@ entries.)
 python main.py
 ```
 
+## Web Interface
+
+Browse both databases in a browser: searchable, filterable, cross-linked pages for teas, blends, cultivars, tisanes
+(with every safety record), plant families, traditions, tea and herbal brands and their products; a world map of tea-
+and herb-growing regions; a brewing timer; tea comparison; a dashboard; and the varieties guide, history, glossary and
+herbal reference. `pip install -r requirements-web.txt && python run_web.py` (http://127.0.0.1:8114; the databases are
+opened read-only). `python scripts/build_static.py` builds the GitHub Pages site; the tea journal (personal notes) is
+local-only and never exported.
+
+| Home | Tea varieties | Tea detail | Regions map | Tisane detail | Dashboard |
+|---|---|---|---|---|---|
+| ![Home page](docs/img/home.png) | ![Tea list with filters](docs/img/teas.png) | ![Silver Needle detail page with brewing timer](docs/img/tea_silver_needle.png) | ![World map of tea and herb regions](docs/img/map.png) | ![Valerian Root detail page](docs/img/tisane_valerian.png) | ![Collection dashboard](docs/img/dashboard.png) |
+
 ## Project Structure
 
 ```
@@ -169,8 +182,14 @@ tea_explorer/
 ├── utils/                       # Utilities
 │   └── formatters.py            # Formatting helpers
 │
-├── tests/                       # Test suite
-│   └── test_models.py           # Model tests
+├── web/                         # Web interface (FastAPI + plain JS; see INTERFACE.md)
+├── scripts/                     # Static-site build, screenshots, fixtures
+├── brewing_presets.py           # Timer presets (desktop and web)
+├── world_shapes.py              # Natural Earth land outlines for the web map
+├── THIRD_PARTY/                 # Natural Earth data and licence note
+├── run_web.py                   # Starts the web app (port 8114)
+│
+├── tests/                       # Test suite (models, repositories, config, journal, web)
 │
 ├── tea_collection.db            # Main tea database (SQLite)
 ├── tisane_collection.db         # Tisane database (SQLite)
@@ -219,6 +238,9 @@ Configuration is managed through `config.py` with environment variable support:
 ```bash
 # Run all tests
 pytest tests/ -v
+
+# Web interface only (pip install -r requirements-web.txt; node 22 for the JS tests)
+python -m pytest -q tests/test_web.py
 
 # With coverage
 pytest tests/ -v --cov=. --cov-report=html

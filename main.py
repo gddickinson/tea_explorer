@@ -39,6 +39,7 @@ from models import Tea, Blend, JournalEntry, Cultivar, Company, Product, Tisane,
 from themes import theme_manager
 from visualizations import ChartGenerator, DashboardGenerator
 from recommendations import RecommendationEngine
+from brewing_presets import TIMER_PRESETS, preset_label
 
 
 class TeaExplorerEnhanced:
@@ -501,13 +502,7 @@ class TeaExplorerEnhanced:
         
         ttk.Label(preset_frame, text="Presets:", font=('', 11, 'bold')).pack()
         
-        presets = [
-            ("Green Tea (3 min)", 180),
-            ("Black Tea (5 min)", 300),
-            ("Oolong (4 min)", 240),
-            ("White Tea (4 min)", 240),
-            ("Pu-erh (5 min)", 300)
-        ]
+        presets = [(preset_label(name, secs), secs) for name, secs in TIMER_PRESETS]
         
         for label, seconds in presets:
             ttk.Button(preset_frame, text=label,

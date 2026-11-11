@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tea &amp; Tisane Collection Explorer</title>
+<meta name="description" content="Browse and search 160 teas, 70 blends, 59 cultivars, 154 herbal tisanes, tea companies and their products, and tea- and herb-growing regions on a world map, with a brewing timer, a varieties guide, history and glossary.">
+<link rel="icon" href="static/icon.svg">
+<link rel="stylesheet" href="static/style.css">
+<link rel="stylesheet" href="static/style_app.css">
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<header class="top">
+  <a class="brand" href="#/"><span class="mark"></span>Tea Explorer</a>
+  <nav class="groups" aria-label="Main">
+    <details><summary>Teas</summary><div class="menu">
+      <a href="#/teas" data-nav="teas">Tea varieties</a>
+      <a href="#/blends" data-nav="blends">Blends</a>
+      <a href="#/cultivars" data-nav="cultivars">Cultivars</a>
+      <a href="#/compare" data-nav="compare">Compare teas</a>
+      <a href="#/dashboard" data-nav="dashboard">Dashboard</a>
+    </div></details>
+    <details><summary>Herbal</summary><div class="menu">
+      <a href="#/tisanes" data-nav="tisanes">Tisanes</a>
+      <a href="#/families" data-nav="families">Plant families</a>
+      <a href="#/traditions" data-nav="traditions">Traditions</a>
+      <a href="#/makers" data-nav="makers">Herbal brands</a>
+    </div></details>
+    <details><summary>Brands</summary><div class="menu">
+      <a href="#/companies" data-nav="companies">Tea companies</a>
+      <a href="#/products" data-nav="products">Products</a>
+    </div></details>
+    <details><summary>Brew</summary><div class="menu">
+      <a href="#/timer" data-nav="timer">Brewing timer</a>
+      <a href="#/journal" data-nav="journal">Tea journal</a>
+    </div></details>
+    <a href="#/map" data-nav="map">Map</a>
+    <details><summary>Read</summary><div class="menu">
+      <a href="#/guide" data-nav="guide">Varieties guide</a>
+      <a href="#/history" data-nav="history">Tea history</a>
+      <a href="#/glossary" data-nav="glossary">Glossary</a>
+      <a href="#/herbal" data-nav="herbal">Herbal reference</a>
+    </div></details>
+    <a href="#/search" data-nav="search">Search</a>
+    <a href="#/about" data-nav="about">About</a>
+  </nav>
+  <div class="right"><a class="small mute" href="https://github.com/gddickinson/tea_explorer" target="_blank" rel="noopener">GitHub</a></div>
+</header>
+<main id="app" tabindex="-1"></main>
+<footer class="foot">Tea &amp; Tisane Collection Explorer · <a href="https://github.com/gddickinson/tea_explorer">source on GitHub</a> · <span id="mode"></span></footer>
+<script type="module" src="static/main.js"></script>
+</body>
+</html>
