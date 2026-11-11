@@ -1,3 +1,7 @@
+> **Outdated (Phase 2).** This guide describes an early archive release. The current repository ships its databases;
+> start it with `python main.py` as in the [README](README.md). Do not run `setup_database.py` on the current
+> repository: it uses an older schema and replaces `tea_journal.json` with sample entries.
+
 # Quick Start Guide - Tea Collection Explorer Phase 2
 
 ## 🚀 Getting Started in 3 Steps

@@ -69,12 +69,15 @@ Interactive map showing tea-growing regions around the world with markers and a 
 | Tea Varieties | 160 |
 | Tea Blends | 70 |
 | Cultivars | 59 |
-| Tea Companies | 28+ |
-| Products | 117+ |
+| Tea Companies | 54 |
+| Products | 117 |
 | Herbal Tisanes | 154 |
-| Growing Regions | 12 |
+| Tea Growing Regions | 42 |
+| Herb Growing Regions | 20 |
+| Herbal Manufacturers / Products | 39 / 58 |
+| Plant Families | 43 |
 
-**Total: 443+ items** across two SQLite databases
+**443 teas, blends, cultivars and tisanes** (the total in the status bar), plus the companies, products and regions above, across two SQLite databases
 
 ## Quick Start
 
@@ -88,11 +91,12 @@ Required packages: `matplotlib`, `Pillow`, `numpy`
 
 Tkinter is included with most Python installations.
 
-### 2. Set Up the Database
+### 2. Databases
 
-```bash
-python setup_database.py
-```
+The two SQLite databases (`tea_collection.db`, `tisane_collection.db`) ship with the repository; there is nothing to
+set up. (Do not run `setup_database.py`: it is a legacy script with an older schema. It fails on the shipped database,
+and on a checkout without one it creates an incompatible 10-tea database and replaces `tea_journal.json` with sample
+entries.)
 
 ### 3. Run the Application
 
