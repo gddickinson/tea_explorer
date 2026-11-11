@@ -39,6 +39,13 @@ class JournalRepository(LoggerMixin):
                 with open(self.journal_path, 'r') as f:
                     data = json.load(f)
                     self._entries = [JournalEntry.from_dict(entry) for entry in data]
+                # Older files have entries without an entry_id: number them (after the highest existing id)
+                # so view/delete act on one entry, not on every entry whose id is None.
+                next_id = max((e.entry_id or 0 for e in self._entries), default=0) + 1
+                for e in self._entries:
+                    if e.entry_id is None:
+                        e.entry_id = next_id
+                        next_id += 1
                 self.logger.info(f"Loaded {len(self._entries)} journal entries")
             except Exception as e:
                 self.logger.error(f"Failed to load journal: {e}", exc_info=True)
