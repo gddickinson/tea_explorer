@@ -799,13 +799,8 @@ Journal Entries: {len(self.journal_controller.get_all_entries())}
         
         self.tea_listbox.delete(0, tk.END)
         
-        if query:
-            teas = self.tea_controller.search_teas(query)
-        else:
-            if category == "All":
-                teas = self.tea_controller.get_all_teas()
-            else:
-                teas = self.tea_controller.get_teas_by_category(category)
+        # Query and category combine (e.g. "jasmine" within Green).
+        teas = self.tea_controller.search_teas(query, category=category)
         
         for tea in teas:
             self.tea_listbox.insert(tk.END, tea.name)

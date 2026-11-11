@@ -56,15 +56,8 @@ class BlendController(LoggerMixin):
         """
         self.logger.info(f"Searching blends: query='{query}', category={category}")
         
+        blends = self.repository.search(query) if query else self.repository.find_all()
         if category and category != "All":
-            blends = self.repository.find_by_category(category)
-        elif query:
-            blends = self.repository.search(query)
-        else:
-            blends = self.repository.find_all()
-        
-        # Apply additional category filter if needed
-        if category and category != "All" and query:
             blends = [b for b in blends if b.category == category]
         
         self.logger.debug(f"Search returned {len(blends)} results")

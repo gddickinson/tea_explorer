@@ -76,22 +76,12 @@ class TeaController(LoggerMixin):
             f"country={country}, caffeine={caffeine_level}"
         )
         
-        # Start with base results
+        # Text search first (name, flavour, origin), then narrow by each filter that is set.
+        teas = self.repository.search(query) if query else self.repository.find_all()
         if category and category != "All":
-            teas = self.repository.find_by_category(category)
-        elif country and country != "All":
-            teas = self.repository.find_by_origin(country)
-        elif query:
-            teas = self.repository.search(query)
-        else:
-            teas = self.repository.find_all()
-        
-        # Apply additional filters
-        if category and category != "All" and (country or query):
             teas = [t for t in teas if t.category == category]
-        
-        if country and country != "All" and (category or query):
-            teas = [t for t in teas if t.origin_country == country]
+        if country and country != "All":
+            teas = [t for t in teas if t.origin == country or (t.origin or "").startswith(f"{country} - ")]
         
         if caffeine_level and caffeine_level != "All":
             teas = [t for t in teas if t.caffeine_level == caffeine_level]

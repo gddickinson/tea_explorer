@@ -52,7 +52,7 @@ class TeaRepository(LoggerMixin):
             Tea object or None
         """
         cursor = self.conn.execute(
-            "SELECT * FROM teas WHERE tea_id = ?",
+            "SELECT * FROM teas WHERE id = ?",
             (tea_id,)
         )
         row = cursor.fetchone()
@@ -112,25 +112,20 @@ class TeaRepository(LoggerMixin):
         Returns:
             List of Tea objects
         """
+        # origin holds "Country - region details" (e.g. "Japan - Shizuoka, Kagoshima") or just "Country".
+        sql = "SELECT * FROM teas WHERE (origin = ? OR origin LIKE ?)"
+        params = [country, f"{country} - %"]
         if region:
-            cursor = self.conn.execute(
-                """SELECT * FROM teas 
-                   WHERE origin = ? AND origin_region = ? 
-                   ORDER BY name""",
-                (country, region)
-            )
-        else:
-            cursor = self.conn.execute(
-                "SELECT * FROM teas WHERE origin = ? ORDER BY name",
-                (country,)
-            )
+            sql += " AND origin LIKE ?"
+            params.append(f"%{region}%")
+        cursor = self.conn.execute(sql + " ORDER BY name", params)
         rows = cursor.fetchall()
         return [Tea.from_db_row(row) for row in rows]
     
     @log_method_call
     def search(self, query: str) -> List[Tea]:
         """
-        Search teas by name or flavor profile
+        Search teas by name, flavor profile or origin
         
         Args:
             query: Search query
@@ -143,7 +138,7 @@ class TeaRepository(LoggerMixin):
             """SELECT * FROM teas 
                WHERE name LIKE ? 
                   OR flavor_profile LIKE ? 
-                  OR origin_region LIKE ?
+                  OR origin LIKE ?
                ORDER BY name""",
             (search_pattern, search_pattern, search_pattern)
         )
