@@ -67,6 +67,10 @@ class TisaneController(LoggerMixin):
         """Get safety information for tisane"""
         return self.repository.get_safety_info(tisane_id)
     
+    def get_safety_records(self, tisane_id: int) -> List[dict]:
+        """Get every safety record for a tisane"""
+        return self.repository.get_safety_records(tisane_id)
+    
     def clear_cache(self):
         """Clear controller caches"""
         self.get_tisane_by_name.cache_clear()

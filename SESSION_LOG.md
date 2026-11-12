@@ -29,3 +29,9 @@ Web interface (`web/`, `run_web.py`, port 8114) and static site (`scripts/build_
 Open questions for George: what to do with `setup_database.py` (archive?); the desktop Tisanes tab shows only the first
 of several safety records per herb (the web shows all); duplicate rows in the data (regions Boseong and Nilgiri twice,
 Rize / Rize Province; companies Harney and Sons / Harney & Sons, Teapigs twice); `main.py` is 1700+ lines.
+
+## 2026-11-11 -- Follow-ups after merge (George's "fix bugs you find")
+- Fixed: the desktop Tisanes tab showed no safety record at all (only a generic warning; the repository's
+  `get_safety_info()` was never called and returned only the first record). New `TisaneRepository/Controller
+  .get_safety_records()` + `utils.formatters.format_safety_records()`; the tab lists every record
+  (`tests/test_tisane_safety.py`). The earlier note above ("shows only the first") was inaccurate.

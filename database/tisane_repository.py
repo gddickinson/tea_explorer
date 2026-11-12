@@ -142,6 +142,11 @@ class TisaneRepository(LoggerMixin):
         except:
             return None
     
+    def get_safety_records(self, tisane_id: int) -> List[dict]:
+        """All safety records for a tisane (some herbs have several, from different sources), in id order."""
+        cursor = self.conn.execute("SELECT * FROM safety_info WHERE tisane_id = ? ORDER BY id", (tisane_id,))
+        return [dict(row) for row in cursor.fetchall()]
+    
     def close(self):
         """Close database connection"""
         if self.conn:

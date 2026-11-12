@@ -103,3 +103,24 @@ def truncate(text: str, max_length: int = 100, suffix: str = "...") -> str:
         return text
     
     return text[:max_length - len(suffix)] + suffix
+
+
+SAFETY_FIELDS = [
+    ("pregnancy_safety", "Pregnancy"), ("nursing_safety", "Nursing"), ("child_safety", "Children"),
+    ("pre_surgery_warning", "Before surgery"), ("contraindications", "Contraindications"),
+    ("drug_interactions", "Drug interactions"), ("max_daily_dosage", "Maximum daily dose"),
+    ("duration_limits", "Duration"), ("adverse_effects", "Adverse effects"), ("evidence_quality", "Evidence quality"),
+]
+
+
+def format_safety_records(records: list) -> str:
+    """Plain-text block listing every safety record of a tisane (desktop Tisanes tab)."""
+    if not records:
+        return "No safety record in the database for this herb."
+    blocks = []
+    for i, r in enumerate(records, 1):
+        head = f"Record {i} of {len(records)} - " if len(records) > 1 else ""
+        lines = [f"{head}Risk level: {r.get('risk_level') or 'not given'}"]
+        lines += [f"  {label}: {r[key]}" for key, label in SAFETY_FIELDS if r.get(key)]
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)

@@ -40,6 +40,7 @@ from themes import theme_manager
 from visualizations import ChartGenerator, DashboardGenerator
 from recommendations import RecommendationEngine
 from brewing_presets import TIMER_PRESETS, preset_label
+from utils.formatters import format_safety_records
 
 
 class TeaExplorerEnhanced:
@@ -1065,6 +1066,8 @@ Key Compounds:
 {tisane.key_compounds}
 
 ⚠️ Safety: Always consult healthcare provider before use, especially if pregnant, nursing, or taking medications.
+
+{format_safety_records(self.tisane_controller.get_safety_records(tisane.tisane_id))}
             """
             
             self.tisane_detail_text.delete('1.0', tk.END)
