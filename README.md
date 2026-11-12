@@ -94,9 +94,8 @@ Tkinter is included with most Python installations.
 ### 2. Databases
 
 The two SQLite databases (`tea_collection.db`, `tisane_collection.db`) ship with the repository; there is nothing to
-set up. (Do not run `setup_database.py`: it is a legacy script with an older schema. It fails on the shipped database,
-and on a checkout without one it creates an incompatible 10-tea database and replaces `tea_journal.json` with sample
-entries.)
+set up. (The old Phase 2 setup script is archived as `_archive/setup_database.py`: it uses a legacy schema and must not be
+run on the shipped databases. It now refuses to run if a database or `tea_journal.json` already exists.)
 
 ### 3. Run the Application
 

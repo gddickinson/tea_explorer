@@ -5,7 +5,7 @@ See @INTERFACE.md for the project navigation map.
 ## Quick Start
 ```bash
 pip install -r requirements.txt
-python main.py                 # databases ship with the repo; do not run setup_database.py
+python main.py                 # databases ship with the repo (no setup step)
 ```
 
 ## Testing

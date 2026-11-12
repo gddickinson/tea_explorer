@@ -27,7 +27,7 @@ def create_indexes(db_path: str = 'tea_collection.db'):
     
     if 'teas' not in tables:
         print("❌ Error: 'teas' table not found!")
-        print("   Please run setup_database.py first")
+        print("   The databases ship with the repository; restore tea_collection.db from git")
         conn.close()
         return False
     
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     
     if not Path(db_path).exists():
         print(f"❌ Error: Database not found at {db_path}")
-        print("   Please run setup_database.py first")
+        print("   The databases ship with the repository; restore tea_collection.db from git")
         sys.exit(1)
     
     # Create indexes

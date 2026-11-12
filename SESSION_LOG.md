@@ -35,3 +35,6 @@ Rize / Rize Province; companies Harney and Sons / Harney & Sons, Teapigs twice);
   `get_safety_info()` was never called and returned only the first record). New `TisaneRepository/Controller
   .get_safety_records()` + `utils.formatters.format_safety_records()`; the tab lists every record
   (`tests/test_tisane_safety.py`). The earlier note above ("shows only the first") was inaccurate.
+- Fixed: `setup_database.py` moved to `_archive/` (docstring explains the legacy schema); it now refuses to run if the
+  target database or `tea_journal.json` exists, so it cannot overwrite the journal by accident. README, QUICKSTART,
+  INTERFACE.md, CLAUDE.md and setup_indexes.py messages updated (`tests/test_legacy_setup.py`).

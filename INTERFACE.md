@@ -19,9 +19,8 @@
 | `performance/` | `cache.py` (caching decorators), `profiler.py` (`profile_method`) |
 | `utils/formatters.py` | Formatting helpers |
 | `views/` | Earlier tab/widget classes (main.py builds the UI itself) |
-| `setup_database.py` | Legacy Phase 2 script with an older schema: do not run on the shipped databases |
 | `setup_indexes.py`, `benchmarks/`, `tools/generate_screenshots.py` | Index creation, performance benchmarks, desktop screenshots (macOS Quartz) |
-| `_archive/` | Old versions, not used |
+| `_archive/` | Old versions, not used (incl. `setup_database.py`: legacy Phase 2 schema, refuses to overwrite existing files) |
 
 ## Web interface (FastAPI + plain ES modules, no build step)
 

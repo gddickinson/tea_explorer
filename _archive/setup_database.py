@@ -1,6 +1,10 @@
 """
-Database Initialization Script
-Creates the database schema for Tea Collection Explorer
+LEGACY (Phase 2) database initialization script -- archived, do not use with the current app.
+
+It creates an older schema (teas.tea_id, origin_country, ...) with 10 sample teas, which the current app cannot use,
+and writes sample entries to tea_journal.json. The current databases (tea_collection.db, tisane_collection.db) ship
+with the repository and need no setup. Kept for reference only: it refuses to run if the target database or
+tea_journal.json already exists, so it can no longer overwrite your journal by accident.
 """
 
 import sqlite3
@@ -231,6 +235,12 @@ if __name__ == '__main__':
     # Get database path from command line or use default
     db_path = sys.argv[1] if len(sys.argv) > 1 else 'tea_collection.db'
     journal_path = 'tea_journal.json'
+    
+    existing = [p for p in (db_path, journal_path) if Path(p).exists()]
+    if existing:
+        print(f"Refusing to run: {', '.join(existing)} already exist(s). This is a legacy script with an old schema;")
+        print("the current databases ship with the repository and need no setup (see README).")
+        sys.exit(1)
     
     # Create database
     create_tea_database(db_path)
